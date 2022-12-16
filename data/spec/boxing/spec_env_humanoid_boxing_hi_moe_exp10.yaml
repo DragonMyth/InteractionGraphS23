@@ -1,0 +1,192 @@
+run: DDPPO
+name: exp10
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/multiagent/boxing/hi/moe/
+checkpoint_freq: 100
+checkpoint_at_end: true
+stop: 
+    time_total_s: 720000
+config:
+    env: HumanoidBoxingHierarchyMOE
+    log_level: WARN
+    gamma: 0.99
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 0.0
+    vf_clip_param: 10000
+    num_sgd_iter: 20
+    lr: 0.00002
+    sgd_minibatch_size: 2000
+    horizon: 900
+    train_batch_size: 100000
+    rollout_fragment_length: 250
+    framework: "torch"
+    num_envs_per_worker: 10
+    num_cpus_per_worker: 10
+    num_gpus_per_worker: 0
+    remote_worker_envs: true
+    shuffle_sequences: true
+    model:
+        custom_model: fcnn
+        custom_model_config:
+            log_std_type: constant
+            sample_std: [0.02, 0.2, 0.2, 0.2, 0.2]
+            policy_fn_activations: ["relu", "relu", "linear"]
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: NoFilter
+    multiagent: None
+    env_config:
+        share_policy: true
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        base_model_config:
+            custom_model_config:
+                expert_size_in: 267
+                expert_size_out: 51
+                expert_hiddens: [
+                    [64, 64],
+                    [64, 64],
+                    [64, 64],
+                    [64, 64],
+                ]
+                expert_activations: [
+                    ["relu", "relu", "linear"],
+                    ["relu", "relu", "linear"],
+                    ["relu", "relu", "linear"],
+                    ["relu", "relu", "linear"],
+                ]
+                expert_init_weights: [
+                    [1.0, 1.0, 0.01],
+                    [1.0, 1.0, 0.01],
+                    [1.0, 1.0, 0.01],
+                    [1.0, 1.0, 0.01],
+                ]
+                expert_checkpoints: [
+                    "data/etc/pretrained_model/boxing/policy_weights_boxing_expert1_1800.pt",
+                    "data/etc/pretrained_model/boxing/policy_weights_boxing_expert2_1800.pt",
+                    "data/etc/pretrained_model/boxing/policy_weights_boxing_expert3_1800.pt",
+                    "data/etc/pretrained_model/boxing/policy_weights_boxing_expert4_1800.pt",
+                ]
+                expert_learnable: [
+                    false,
+                    false,
+                    false,
+                    false,
+                ]
+        base_env_config:
+            dphase_default: 0.01
+            lazy_creation: false
+            project_dir: /private/home/jungdam/Research/ScaDive/
+            fps_sim: 480
+            fps_con: 30
+            self_collision: true
+            add_noise: false
+            verbose: false
+            state:
+                choices: ['phase_linear', 'body', 'game_basic', 'game_touch_avail']
+            action:
+                type: "absolute"
+                range_min: -3.0
+                range_max: 3.0
+                range_min_pol: -3.0
+                range_max_pol: 3.0
+            reward:
+                fn_def:
+                    default:
+                        name: default
+                        op: add
+                        child_nodes:
+                          - name: fencing
+                            op: add
+                            weight: 1.0
+                            child_nodes:
+                              - name: out_of_arena
+                                op: leaf
+                                weight: -10.0
+                                kernel: 
+                                    type: none
+                              - name: falldown
+                                op: leaf
+                                weight: -10.0
+                                kernel: 
+                                    type: none
+                              - name: too_close_pos
+                                op: leaf
+                                weight: -10.0
+                                kernel: 
+                                    type: none
+                              - name: take_score
+                                op: leaf
+                                weight: 1.0
+                                kernel: 
+                                    type: none
+                              - name: lose_score
+                                op: leaf
+                                weight: -1.0
+                                kernel: 
+                                    type: none
+                fn_map:
+                    - default
+                    - default
+            early_term:
+                choices:
+                    - timeover
+                    - gameover
+                    - falldown
+                    # - out_of_arena
+                    # - too_close_pos
+                eoe_margin: 0.0
+            character:
+                name:
+                    - player1
+                    - player2
+                char_info_module:
+                    - humanoid_boxing_char_info.py
+                    - humanoid_boxing_char_info.py
+                sim_char_file:
+                    - data/character/humanoid_boxing.urdf
+                    - data/character/humanoid_boxing.urdf
+                ref_motion_scale:
+                    - 1.0
+                    - 1.0
+                base_motion_file:
+                    - data/motion/multiagent/boxing/player1.bvh
+                    - data/motion/multiagent/boxing/player2.bvh
+                ref_motion_db:
+                    - data:
+                        # file:
+                        #     - data/motion/multiagent/boxing/player1.bvh
+                        dir:
+                            - data/motion/multiagent/boxing/base/
+                    - data:
+                        # file:
+                        #     - data/motion/multiagent/boxing/player2.bvh
+                        dir:
+                            - data/motion/multiagent/boxing/base/
+                actuation: 
+                    - spd
+                    - spd
+                self_collision: 
+                    - true
+                    - true
+                environment_file: []
+            game:
+                min_touch_force: 1.0
+                type: total_score
+                init_score: 999
+                duration: 30.0
+                touch_interval: 0.5
+                target_links:
+                    - lowerneck
+                    - upperneck
+                    - lowerback
+                    - upperback
+                    - chest
+                    # - lclavicle
+                    # - rclavicle
+                    # - lhip
+                    # - lknee
+                    # - lankle
+                    # - rhip
+                    # - rknee
+                    # - rankle

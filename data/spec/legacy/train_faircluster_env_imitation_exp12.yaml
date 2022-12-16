@@ -1,0 +1,122 @@
+# add_noise: true -> false
+run: PPO
+name: exp12
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/imitation/
+checkpoint_freq: 500
+checkpoint_at_end: true
+stop: 
+    time_total_s: 240000
+config:
+    env: HumanoidImitation
+    use_pytorch: true
+    gamma: 0.95
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 1.0
+    vf_clip_param: 1000
+    num_sgd_iter: 10
+    lr: 0.00001
+    sgd_minibatch_size: 256
+    horizon: 300
+    train_batch_size: 8192
+    sample_batch_size: 128
+    model:
+        fcnet_activation: relu
+        fcnet_hiddens: [256, 256]
+        free_log_std: true
+        vf_share_layers: false
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: MeanStdFilter
+    env_config:
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        # Simulation
+        fps_sim: 480
+        fps_con: 30
+        self_collision: true
+        add_noise: false
+        verbose: false
+        sim_window: 120
+        eoe_margin: 1.0
+        # 'none', 'spd', 'pd', 'cpd', 'cp', 'v
+        actuation: spd
+        # 'imitation', 'heading', 'carry', 'dribble', 'fight', 'chase'
+        task: 
+            - imitation
+        state:
+            # 'body', 'imitation', 'interaction', 'task'
+            choices:
+                - body
+                - task
+        action:
+            # 'absolute', 'relative'
+            type: "absolute"
+            range_min: -3.0
+            range_max: 3.0
+            range_min_pol: -15.0
+            range_max_pol: 15.0
+        reward: 
+            # 'pose', 'vel', 'ee', 'root', 'com', 'interaction'
+            choices: []
+            fn_def:
+                default:
+                    name: total
+                    op: mul
+                    child_nodes:
+                      - name: pose_pos
+                        op: leaf
+                        weight: 1.0
+                        kernel: 
+                            type: gaussian
+                            scale: 20.0
+                      - name: pose_vel
+                        op: leaf
+                        weight: 1.0
+                        kernel: 
+                            type: gaussian
+                            scale: 1.0
+                      - name: ee
+                        op: leaf
+                        weight: 1.0
+                        kernel: 
+                            type: gaussian
+                            scale: 5.0
+                      - name: root
+                        op: leaf
+                        weight: 1.0
+                        kernel: 
+                            type: gaussian
+                            scale: 2.5
+                      - name: com
+                        op: leaf
+                        weight: 1.0
+                        kernel: 
+                            type: gaussian
+                            scale: 1.0
+            fn_map:
+                - default
+        early_term:
+            # 'task_complete', 'falldown', 'root_fail', 'low_reward'
+            choices:
+                - task_complete
+                - low_reward
+            low_reward_thres: 0.1
+            falldown_contactable_body:
+                - lankle
+                - lknee
+                - rankle
+                - rknee
+        character:
+            char_info_module:
+                - amass_char_info.py
+            sim_char_file:
+                - data/character/amass.urdf
+            ref_motion_scale:
+                - 1.0
+            base_motion_file:
+                - data/motion/amass/amass_hierarchy.bvh
+            ref_motion_file:
+                # - data/motion/amass/amass_hierarchy.bvh
+                - data/motion/amass/CMU/85/85_14_poses.bvh
+            environment_file: []

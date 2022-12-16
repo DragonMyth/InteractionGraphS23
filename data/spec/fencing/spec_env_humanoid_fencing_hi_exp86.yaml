@@ -1,0 +1,200 @@
+run: DDPPO
+name: exp86
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/multiagent/fencing/hi/
+checkpoint_freq: 100
+checkpoint_at_end: true
+stop: 
+    time_total_s: 720000
+config:
+    env: HumanoidFencingHierarchy
+    log_level: WARN
+    gamma: 0.995
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 0.0
+    vf_clip_param: 10000
+    num_sgd_iter: 40
+    lr: 0.00002
+    sgd_minibatch_size: 20000
+    horizon: 900
+    train_batch_size: 200000
+    rollout_fragment_length: 250
+    framework: "torch"
+    num_envs_per_worker: 10
+    num_cpus_per_worker: 10
+    num_gpus_per_worker: 0
+    remote_worker_envs: true
+    shuffle_sequences: true
+    model:
+        custom_model: fcnn
+        custom_model_config:
+            log_std_type: state_independent
+            sample_std: 0.2
+            policy_fn_activations: ["relu", "relu", "tanh"]
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: NoFilter
+    multiagent: None
+    env_config:
+        share_policy: false
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        base_model_config:
+            custom_model: task_agnostic_policy_type1
+            custom_model_config:
+                log_std_type: constant
+                sample_std: 0.1
+                lstm_enable: false
+                task_encoder_enable: false
+                task_encoder_output_dim: 4
+                task_encoder_activations: ["relu", "relu", "tanh"]
+                body_encoder_enable: true
+                body_encoder_output_dim: 16
+                body_encoder_hiddens: [128, 64]
+                body_encoder_activations: ["relu", "relu", "tanh"]
+                body_encoder_load_weights: data/etc/pretrained_model/fencing/task_agnostic_policy_body_encoder_exp19_3000.pt
+                body_encoder_learnable: false
+                motor_decoder_hiddens: [64, 128]
+                motor_decoder_load_weights: data/etc/pretrained_model/fencing/task_agnostic_policy_motor_decoder_exp19_3000.pt
+                motor_decoder_learnable: false
+        base_env_config:
+            lazy_creation: true
+            project_dir: /private/home/jungdam/Research/ScaDive/
+            fps_sim: 480
+            fps_con: 30
+            self_collision: true
+            add_noise: false
+            verbose: false
+            state:
+                choices: ['body', 'game_basic_5', 'game_touch_avail', 'game_touch_counter', 'remaining_time', 'task_body']
+            action:
+                # 'absolute', 'relative'
+                type: "absolute"
+                range_min: -3.0
+                range_max: 3.0
+                range_min_pol: -3.0
+                range_max_pol: 3.0
+            reward: 
+                fn_def:
+                    default:
+                        name: default
+                        op: add
+                        child_nodes:
+                          - name: fencing
+                            op: add
+                            weight: 1.0
+                            child_nodes:
+                              # - name: stay_near_opponent
+                              #   op: leaf
+                              #   weight: 0.05
+                              #   kernel: 
+                              #       type: gaussian
+                              #       scale: 0.5
+                              - name: out_of_arena
+                                op: leaf
+                                weight: -10.0
+                                kernel: 
+                                    type: none
+                              - name: falldown
+                                op: leaf
+                                weight: -10.0
+                                kernel: 
+                                    type: none
+                              - name: out_of_facing_dir
+                                op: leaf
+                                weight: -10.0
+                                kernel: 
+                                    type: none
+                              - name: too_close_pos
+                                op: leaf
+                                weight: -10.0
+                                kernel: 
+                                    type: none
+                              # - name: win
+                              #   op: leaf
+                              #   weight: 5.0
+                              #   kernel: 
+                              #       type: none
+                              # - name: lose
+                              #   op: leaf
+                              #   weight: -5.0
+                              #   kernel: 
+                              #       type: none
+                              # - name: draw
+                              #   op: leaf
+                              #   weight: -10.0
+                              #   kernel: 
+                              #       type: none
+                              - name: take_score
+                                op: leaf
+                                weight: 5.0
+                                kernel: 
+                                    type: none
+                              - name: lose_score
+                                op: leaf
+                                weight: -5.0
+                                kernel: 
+                                    type: none
+                fn_map:
+                    - default
+                    - default
+            early_term:
+                # 'sim_div', 'sim_window', task_end', 'falldown', 'low_reward'
+                choices:
+                    # - ref_motion_end
+                    - timeover
+                    - gameover
+                    - falldown
+                    - out_of_arena
+                    - out_of_facing_dir
+                    - too_close_pos
+                eoe_margin: 0.0
+            character:
+                name:
+                    - player1
+                    - player2
+                char_info_module:
+                    - humanoid_fencing_char_info2.py
+                    - humanoid_fencing_char_info2.py
+                sim_char_file:
+                    - data/character/humanoid_fencing.urdf
+                    - data/character/humanoid_fencing.urdf
+                ref_motion_scale:
+                    - 1.0
+                    - 1.0
+                base_motion_file:
+                    - data/motion/multiagent/fencing/player1.bvh
+                    - data/motion/multiagent/fencing/player2.bvh
+                ref_motion_db:
+                    - data:
+                        file:
+                            - data/motion/multiagent/fencing/edited/Capture1_subject1_stageII_edited.bvh
+                    - data:
+                        file:
+                            - data/motion/multiagent/fencing/edited/Capture1_subject2_stageII_edited.bvh
+                actuation: 
+                    - spd
+                    - spd
+                self_collision: 
+                    - true
+                    - true
+                environment_file: []
+            game:
+                min_touch_force: 1.0
+                type: total_score
+                init_score: 100
+                duration: 20.0
+                touch_interval: 1.0
+                counter_touch_allow_length: 0.3
+                target_links:
+                    - lowerback
+                    - upperback
+                    - chest
+                    # - lclavicle
+                    # - rclavicle
+                    # - lhip
+                    # - lknee
+                    # - lankle
+                    # - rhip
+                    # - rknee
+                    # - rankle

@@ -1,0 +1,75 @@
+run: PPO
+name: exp1
+local_dir: "/checkpoint/jungdam/Research/ScaDive/data/learning/multiagent/test/"
+checkpoint_freq: 25
+checkpoint_at_end: true
+stop: 
+    time_total_s: 240000
+config:
+    env: HumanoidWalking
+    gamma: 0.95
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 1.0
+    num_sgd_iter: 10
+    lr: 0.00001
+    sgd_minibatch_size: 256
+    horizon: 900
+    train_batch_size: 8192
+    sample_batch_size: 256
+    model:
+        free_log_std: true
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: MeanStdFilter
+    env_config:
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        # Simulation
+        fps_sim: 240
+        fps_con: 30
+        self_collision: true
+        add_noise: true
+        verbose: false
+        sim_window: 60
+        end_margin: 1.5
+        # 'none', 'spd', 'pd', 'cpd', 'cp', 'v
+        actuation: spd
+        # 'imitation', 'emerge_coop', 'emerge_comp'
+        mode: emerge_comp
+        # 'heading', 'carry', 'dribble'
+        task: heading
+        state:
+            # 'body', 'imitation', 'interaction', 'task'
+            choices: ['body', 'task']
+        action:
+            # 'absolute', 'relative'
+            type: "absolute"
+
+            range_min: -1.5
+            range_max: 1.5
+            range_min_pol: -15.0
+            range_max_pol: 15.0
+        reward: 
+            # 'sum', 'mul'
+            type: sum
+            # 'pose', 'vel', 'ee', 'root', 'com', 'interaction'
+            choices: []
+        early_term:
+            # 'task_complete', 'falldown', 'root_fail', 'low_reward'
+            choices:
+                - falldown
+            low_reward_thres: 0.1
+            falldown_contactable_body:
+                - lankle
+                - rankle
+        character:
+            char_info_module:
+                - amass_char_info.py
+            sim_char_file:
+                - data/character/amass.urdf
+            ref_motion_scale:
+                - 1.0
+            base_motion_file:
+                - data/motion/multiagent/emerge/actor1.bvh
+            ref_motion_files: []

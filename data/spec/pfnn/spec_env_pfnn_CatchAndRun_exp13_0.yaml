@@ -1,0 +1,281 @@
+run: DDPPO
+name: exp13_0
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/pfnn/CatchAndRun/
+checkpoint_freq: 500
+checkpoint_at_end: true
+reuse_actors: true
+stop: 
+    time_total_s: 720000
+config:
+    env: HumanoidTag
+    log_level: WARN
+    gamma: 0.99
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 0.0
+    vf_clip_param: 1000
+    num_sgd_iter: 20
+    lr: 0.00002
+    sgd_minibatch_size: 500
+    horizon: 3600
+    train_batch_size: 50000
+    rollout_fragment_length: 25
+    normalize_actions: false
+    clip_actions: true
+    num_envs_per_worker: 5
+    num_cpus_per_worker: 5
+    num_gpus_per_worker: 0
+    remote_worker_envs: true
+    framework: torch
+    shuffle_sequences: true
+    model:
+        custom_model: task_agnostic_policy_type1
+        custom_model_config:
+            log_std_type: constant
+            sample_std: 0.1
+            task_encoder_type: "mlp"
+            task_encoder_inputs:
+                - body
+                - task
+            task_encoder_output_dim: 32
+            task_encoder_layers:
+                - type: fc
+                  hidden_size: 256
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: 128
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: output
+                  activation: "linear"
+                  init_weight: 
+                      name: normc
+                      std: 0.01
+            
+            body_encoder_enable: false
+
+            motor_decoder_type: "mlp"
+            motor_decoder_inputs:
+                - body
+                - task
+            motor_decoder_layers:
+                - type: fc
+                  hidden_size: 512
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: 512
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: 512
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: output
+                  activation: "linear"
+                  init_weight: 
+                      name: normc
+                      std: 0.01
+            motor_decoder_load_weights: data/etc/pretrained_model/pfnn/TrainModel_2021-10-15_01-43-01/9/task_agnostic_policy_motor_decoder.pt
+            motor_decoder_learnable: false
+
+            motor_decoder_helper_enable: true
+            motor_decoder_helper_range: 0.1
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: NoFilter
+    env_config:
+        share_policy: false
+        lazy_creation: false
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        fps_sim: 480
+        fps_con: 30
+        add_noise: false
+        verbose: false
+        ground:
+            enable: true
+            height_measure_offset: 4.0
+            size: 
+                - 15.0 # width1
+                - 15.0 # width2
+                - 5.0 # height
+            falldown_check:
+                method: height
+                height_min: 0.3
+        state:
+            choices: ['body', 'vision', 'opponent_com_pos_vel_always']
+            body_type: facing_R6_h
+        action:
+            # 'absolute', 'relative'
+            type: "absolute"
+            range_min: -3.0
+            range_max: 3.0
+            range_min_pol: -3.0
+            range_max_pol: 3.0
+        reward: 
+            reward: 
+            fn_def:
+                player1:
+                    name: total
+                    op: add
+                    child_nodes:
+                     - name: dist_always
+                       op: leaf
+                       weight: 1.0
+                       kernel: 
+                         type: gaussian
+                         scale: 0.2
+                player2:
+                    name: total
+                    op: add
+                    child_nodes:
+                     - name: falldown
+                       op: leaf
+                       weight: -0.0
+                       kernel: 
+                         type: none
+                     - name: total
+                       op: add
+                       child_nodes:
+                         - name: dist_always
+                           op: leaf
+                           weight: -1.0
+                           kernel: 
+                             type: gaussian
+                             scale: 0.2
+                         - name: dist_always_constant
+                           op: constant
+                           value: 1.0
+            fn_map:
+                - player1
+                - player2
+        early_term:
+            choices:
+                - falldown
+                - out_of_ground
+                - gameover
+            eoe_margin: 0.0
+        character:
+            name:
+                - player1
+                - player2
+            char_info_module:
+                - pfnn_char_info.py
+                - pfnn_char_info.py
+            sim_char_file:
+                - data/character/pfnn.urdf
+                - data/character/pfnn.urdf
+            ref_motion_scale:
+                - 1.0
+                - 1.0
+            base_motion_file:
+                - data/motion/pfnn/pfnn_hierarchy.bvh
+                - data/motion/pfnn/pfnn_hierarchy.bvh
+            ref_motion_db:
+                -
+                    data:
+                        file:
+                            - data/motion/pfnn/pfnn_follower_init_states_tag1.bvh
+                -
+                    data:
+                        file:
+                            - data/motion/pfnn/pfnn_follower_init_states_tag1.bvh
+            physics:
+                -
+                    actuation: spd
+                    self_collision: true
+                -
+                    actuation: spd
+                    self_collision: true
+            environment_file:
+                - data/ground/tag3.urdf
+            sensors:
+                - 
+                    vision_forward:
+                        type: vision
+                        num_history: 2
+                        agent_radius: 0.4
+                        num_ray: 32
+                        max_dist_ray: 10
+                        angle_ray: 45
+                        angle_ray_offset: 0
+                        height_offset: 0.5
+                        attachment: none
+                    vision_other:
+                        type: vision
+                        num_history: 2
+                        agent_radius: 0.4
+                        num_ray: 64
+                        max_dist_ray: 3
+                        angle_ray: 315
+                        angle_ray_offset: 180
+                        height_offset: 0.5
+                        attachment: none
+                - 
+                    vision_forward:
+                        type: vision
+                        num_history: 2
+                        agent_radius: 0.4
+                        num_ray: 32
+                        max_dist_ray: 10
+                        angle_ray: 45
+                        angle_ray_offset: 0
+                        height_offset: 0.5
+                        attachment: none
+                    vision_other:
+                        type: vision
+                        num_history: 2
+                        agent_radius: 0.4
+                        num_ray: 64
+                        max_dist_ray: 3
+                        angle_ray: 315
+                        angle_ray_offset: 180
+                        height_offset: 0.5
+                        attachment: none
+            launching_places:
+                -
+                    -
+                        type: box
+                        p_min: [-6.0, -6.0]
+                        p_max: [-6.0, 6.0]
+                        rotation: [-3.14, 3.14]
+                    -
+                        type: box
+                        p_min: [-3.0, -6.0]
+                        p_max: [-3.0, 6.0]
+                        rotation: [-3.14, 3.14]
+                    -
+                        type: box
+                        p_min: [0.0, -6.0]
+                        p_max: [0.0, -1.0]
+                        rotation: [-3.14, 3.14]
+                -
+                    -
+                        type: box
+                        p_min: [6.0, -6.0]
+                        p_max: [6.0, 6.0]
+                        rotation: [-3.14, 3.14]
+                    -
+                        type: box
+                        p_min: [3.0, -6.0]
+                        p_max: [3.0, 6.0]
+                        rotation: [-3.14, 3.14]
+                    -
+                        type: box
+                        p_min: [0.0, 1.0]
+                        p_max: [0.0, 6.0]
+                        rotation: [-3.14, 3.14]

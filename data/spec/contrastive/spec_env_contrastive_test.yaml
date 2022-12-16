@@ -1,0 +1,50 @@
+run: PPO
+name: exp1
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/contrastive/
+checkpoint_freq: 100
+checkpoint_at_end: true
+stop: 
+    time_total_s: 720000
+config:
+    env: Contrastive
+    log_level: WARN
+    gamma: 0.95
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 0.0
+    vf_clip_param: 1000
+    num_sgd_iter: 20
+    lr: 0.00001
+    sgd_minibatch_size: 500
+    horizon: 900
+    train_batch_size: 50000
+    rollout_fragment_length: 100
+    vf_share_layers: false
+    num_envs_per_worker: 1
+    num_cpus_per_worker: 1
+    num_gpus_per_worker: 0
+    framework: 'torch'
+    model:
+        custom_model: fcnn
+        custom_model_config:
+            log_std_type: constant
+            sample_std: 0.1
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: NoFilter
+    env_config:
+        verbose: True
+        past_window_size: 4
+        dim_action: 2
+        dim_state: 8 # (past_window_size) * dim_action
+        range_min_state: -10.0
+        range_max_state: 10.0
+        range_min_action: -10.0
+        range_max_action: 10.0
+        model:
+            type: MSE
+            model: data/temp/contrastive_test.model
+            data: data/temp/contrastive_test.data
+            dataset: data/temp/contrastive_test.dataset
+

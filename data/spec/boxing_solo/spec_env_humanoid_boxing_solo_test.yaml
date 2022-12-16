@@ -1,0 +1,214 @@
+run: DDPPO
+name: exp12_2
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/boxing_solo/
+checkpoint_freq: 500
+checkpoint_at_end: true
+reuse_actors: true
+stop: 
+    time_total_s: 720000
+config:
+    env: HumanoidBoxingSolo
+    log_level: WARN
+    gamma: 0.99
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 0.0
+    vf_clip_param: 5000
+    num_sgd_iter: 20
+    lr: 0.00002
+    sgd_minibatch_size: 500
+    horizon: 900
+    train_batch_size: 50000
+    rollout_fragment_length: 50
+    normalize_actions: false
+    clip_actions: true
+    num_envs_per_worker: 5
+    num_cpus_per_worker: 5
+    num_gpus_per_worker: 0
+    remote_worker_envs: true
+    framework: torch
+    model:
+        custom_model: task_agnostic_policy_type1
+        custom_model_config:
+            log_std_type: constant
+            sample_std: 0.1
+            task_encoder_type: "mlp"
+            task_encoder_inputs:
+                # - body
+                - task
+            task_encoder_output_dim: 32
+            task_encoder_layers:
+                - type: fc
+                  hidden_size: 256
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: 128
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: output
+                  activation: "linear"
+                  init_weight: 
+                      name: normc
+                      std: 0.01
+            
+            body_encoder_enable: false
+
+            motor_decoder_type: "mlp"
+            motor_decoder_inputs:
+                - body
+                - task
+            motor_decoder_layers:
+                - type: fc
+                  hidden_size: 512
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: 512
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: 512
+                  activation: "relu"
+                  init_weight: 
+                      name: normc
+                      std: 1.0
+                - type: fc
+                  hidden_size: output
+                  activation: "linear"
+                  init_weight: 
+                      name: normc
+                      std: 0.01
+            motor_decoder_load_weights: "data/etc/pretrained_model/boxing/TrainModel_2021-12-29_14-35-08/TrainModel_939d6_00010_10_FP_cyc_coeff=0.01,FP_depth=2,FP_width=1024,MD_depth=3,MD_type=mlp,MD_width=512,TE_cond=abs,a_rec_coeff=1_2021-12-29_14-37-22/checkpoint_000600/motor_decoder.pt"
+            motor_decoder_learnable: false
+
+            motor_decoder_helper_enable: true
+            motor_decoder_helper_range: 0.05
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: NoFilter
+    env_config:
+        lazy_creation: true
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        fps_sim: 480
+        fps_con: 30
+        add_noise: false
+        verbose: false
+        ground:
+            enable: true
+            falldown_check:
+                method: height
+                height_min: 0.3
+            size: 
+                - 10.0 # width1
+                - 10.0 # width2
+                - 10.0 # heigh, only used for checking out-of-ground
+        state:
+            choices: ['body', 'goal']
+            body_type: facing_R6_h
+        action:
+            # 'absolute', 'relative'
+            type: "absolute"
+            range_min: -3.0
+            range_max: 3.0
+            range_min_pol: -3.0
+            range_max_pol: 3.0
+        reward: 
+            fn_def:
+                default:
+                    name: total
+                    op: add
+                    child_nodes:
+                      - name: phase1_dist_to_target
+                        op: leaf
+                        weight: 0.1
+                        kernel: 
+                            type: gaussian
+                            scale: 0.5
+                      - name: phase2_keep_distance
+                        op: leaf
+                        weight: 0.1
+                        kernel: 
+                            type: gaussian
+                            scale: 5.0
+                      - name: hit_force_max
+                        op: leaf
+                        weight: 100.0
+                        kernel: 
+                            type: none
+                      - name: hit_during_idle
+                        op: leaf
+                        weight: -2
+                        kernel: 
+                            type: none
+            fn_map:
+                - default
+        early_term:
+            choices:
+                - falldown
+                - out_of_ground
+                - task_complete
+            eoe_margin: 0.0
+        character:
+            name:
+                - agent1
+            char_info_module:
+                - humanoid_boxing_char_info2.py
+            sim_char_file:
+                - data/character/humanoid_boxing.urdf
+            ref_motion_scale:
+                - 1.0
+            base_motion_file:
+                - data/motion/multiagent/boxing/player1.bvh
+            ref_motion_db:
+                -
+                    data:
+                        file:
+                            - data/motion/multiagent/boxing/player1.bvh
+            physics:
+                -
+                    actuation: spd
+                    self_collision: true
+            environment_file: []
+            launching_places:
+                -
+                    -
+                        type: circle
+                        p_center: [-1.0, 0.0]
+                        radius_min: 0.0
+                        radius_max: 0.0
+                        rotation: [-1.5, -1.5]
+        goal:
+            type: stream
+            stream_lookahead: 3
+            reset_time_min: 0.2
+            reset_time_max: 2.0
+            idle_start_time: 0.1
+            scale_force: 0.001
+            min_hit_force: 200.0
+            max_hit_force: 1000.0
+            height: 1.2
+            phase1_dist_reached: 1.25
+            phase2_keep_distance: 1.0
+            dist_target_hit: 0.15
+            hit_source: 
+                - lwrist
+                - rwrist
+            physical_target_urdf_file: data/character/sandbag.urdf
+            launching_places:
+                -
+                    type: fan
+                    p_center: [0.0, 0.0]
+                    radius_min: 0.0
+                    radius_max: 0.0
+                    angle: [0, 0]

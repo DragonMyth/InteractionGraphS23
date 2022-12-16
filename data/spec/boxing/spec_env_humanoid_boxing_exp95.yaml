@@ -1,0 +1,196 @@
+run: DDPPO
+name: exp95
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/multiagent/boxing/
+checkpoint_freq: 100
+checkpoint_at_end: true
+reuse_actors: true
+stop: 
+    time_total_s: 7200000
+config:
+    env: HumanoidBoxing
+    log_level: WARN
+    gamma: 0.99
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 0.0
+    vf_clip_param: 1000
+    num_sgd_iter: 20
+    lr: 0.00001
+    sgd_minibatch_size: 2000
+    horizon: 1800
+    train_batch_size: 150000
+    rollout_fragment_length: 250
+    framework: "torch"
+    num_envs_per_worker: 10
+    num_cpus_per_worker: 10
+    num_gpus_per_worker: 0
+    remote_worker_envs: true
+    shuffle_sequences: true
+    model:
+        custom_model: task_agnostic_policy_type1
+        custom_model_config:
+            log_std_type: constant
+            sample_std: 0.1
+            task_encoder_type: "lstm"
+            task_encoder_output_dim: 8
+            task_encoder_hiddens: [128, 128]
+            task_encoder_activations: ["relu", "relu", "linear"]
+            task_encoder_autoreg: true
+            task_encoder_autoreg_alpha: 0.9
+            task_encoder_init_weights: [1.0, 1.0, 0.01]
+            task_encoder_use_body_info: true
+            body_encoder_enable: false
+            motor_decoder_type: "moe"
+            motor_decoder_hiddens: [128, 128]
+            motor_decoder_load_weights: data/etc/pretrained_model/boxing/task_agnostic_policy_motor_decoder_exp25_4400.pt
+            motor_decoder_learnable: false
+            training_schedule:
+                method: e2e
+                decoder_learn_start: 800
+                decoder_learn_lengh: 20
+                encoder_learn_lengh: 80
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: NoFilter
+    multiagent: None
+    env_config:
+        ac_scale: 3.0
+        share_policy: true
+        lazy_creation: false
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        fps_sim: 480
+        fps_con: 30
+        self_collision: true
+        add_noise: false
+        verbose: false
+        ground_contact_stiffness: 50000
+        ground_contact_damping: 0.2
+        state:
+            choices: ['body', 'game_basic', 'contact_state']
+        action:
+            # 'absolute', 'relative'
+            type: "absolute"
+            range_min: -3.0
+            range_max: 3.0
+            range_min_pol: -3.0
+            range_max_pol: 3.0
+        reward: 
+            fn_def:
+                default:
+                    name: default
+                    op: add
+                    child_nodes:
+                      - name: boxing
+                        op: add
+                        weight: 1.0
+                        child_nodes:
+                          - name: upright_upper_body
+                            op: leaf
+                            weight: -0.1
+                            kernel: 
+                                type: none
+                          - name: energy_consumption_by_distance
+                            op: leaf
+                            weight: -0.001
+                            kernel: 
+                                type: none
+                          - name: dist_to_targets
+                            op: leaf
+                            weight: 0.2
+                            kernel: 
+                                type: gaussian
+                                scale: 3.0
+                          - name: facing_dir_alignment
+                            op: leaf
+                            weight: 0.05
+                            kernel: 
+                                type: gaussian
+                                scale: 5.0
+                          - name: falldown
+                            op: leaf
+                            weight: -30.0
+                            kernel: 
+                                type: none
+                          - name: too_close_pos
+                            op: leaf
+                            weight: -30.0
+                            kernel: 
+                                type: none
+                          - name: take_score
+                            op: leaf
+                            weight: 1.0
+                            kernel: 
+                                type: none
+                          - name: lose_score
+                            op: leaf
+                            weight: -1.0
+                            kernel: 
+                                type: none
+            fn_map:
+                - default
+                - default
+        early_term:
+            choices:
+                - timeover
+                - gameover
+                - falldown
+                # - out_of_arena
+                - too_close_pos
+            eoe_margin: 0.1
+        character:
+            name:
+                - player1
+                - player2
+            char_info_module:
+                - humanoid_boxing_char_info2.py
+                - humanoid_boxing_char_info2.py
+            sim_char_file:
+                - data/character/humanoid_boxing.urdf
+                - data/character/humanoid_boxing.urdf
+            ref_motion_scale:
+                - 1.0
+                - 1.0
+            base_motion_file:
+                - data/motion/multiagent/boxing/player1.bvh
+                - data/motion/multiagent/boxing/player2.bvh
+            ref_motion_db:
+                - data:
+                    # file:
+                    #         - data/motion/multiagent/boxing/player1.bvh
+                    dir:
+                        - data/motion/multiagent/boxing/new_style/
+                        - data/motion/multiagent/boxing/base/
+                        - data/motion/multiagent/boxing/base_reflected/
+                - data:
+                    # file:
+                    #         - data/motion/multiagent/boxing/player1.bvh
+                    dir:
+                        - data/motion/multiagent/boxing/new_style/
+                        - data/motion/multiagent/boxing/base/
+                        - data/motion/multiagent/boxing/base_reflected/
+            actuation: 
+                - spd
+                - spd
+            self_collision: 
+                - true
+                - true
+            environment_file:
+                - data/character/boxing_ropes_small.urdf
+        game:
+            arena_width: 4.7
+            arena_outer_margin: 1.05
+            min_touch_force: 1.0
+            type: total_score
+            init_score: 9999.0
+            duration: 60.0
+            touch_interval: 0.5
+            max_force_clip: 200.0
+            target_links:
+                lowerneck: 2.0
+                upperneck: 2.0
+                lowerback: 0.5
+                upperback: 0.5
+                chest: 0.5
+                lclavicle: 0.2
+                rclavicle: 0.2

@@ -1,0 +1,55 @@
+run: PPO
+name: test
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/multiagent/fencing/kinematics/
+checkpoint_freq: 100
+checkpoint_at_end: true
+stop: 
+    time_total_s: 720000
+config:
+    env: HumanoidKinematicsContrastive
+    log_level: WARN
+    gamma: 0.95
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 0.0
+    vf_clip_param: 1000
+    num_sgd_iter: 20
+    lr: 0.00001
+    sgd_minibatch_size: 500
+    horizon: 300
+    train_batch_size: 5000
+    rollout_fragment_length: 100
+    vf_share_layers: false
+    num_envs_per_worker: 1
+    num_cpus_per_worker: 1
+    num_gpus_per_worker: 0
+    framework: 'torch'
+    model:
+        custom_model: fcnn
+        custom_model_config:
+            log_std_type: constant
+            sample_std: 0.1
+    num_workers: 4
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: NoFilter
+    env_config:
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        fps: 30
+        past_window_size: 15
+        skip_frames: 2
+        char_info_module:
+            - amass_char_info.py
+        sim_char_file:
+            - data/character/amass.urdf
+        ref_motion_scale:
+            - 1.0
+        base_motion_file: 
+            - data/motion/amass/amass_hierarchy.bvh
+        ref_motion_file: 
+            -
+                - data/motion/multiagent/fencing/base/Capture1_subject1_stageII.bvh
+        plausibility_model: 
+            - data/etc/pretrained_model/fencing/contrastive/aa_15_2_0005/40.model
+        verbose': false
+        

@@ -1,0 +1,126 @@
+run: PPO
+name: exp4
+local_dir: /checkpoint/jungdam/Research/ScaDive/data/learning/multiagent/fencing/task/
+checkpoint_freq: 100
+checkpoint_at_end: true
+stop: 
+    time_total_s: 720000
+config:
+    env: HumanoidFencing
+    log_level: WARN
+    gamma: 0.99
+    lambda: 0.95
+    clip_param: 0.2
+    kl_coeff: 0.0
+    vf_clip_param: 1000
+    num_sgd_iter: 20
+    lr: 0.00001
+    sgd_minibatch_size: 500
+    horizon: 900
+    train_batch_size: 100000
+    rollout_fragment_length: 250
+    use_pytorch: true
+    num_envs_per_worker: 1
+    num_cpus_per_worker: 1
+    num_gpus_per_worker: 0
+    remote_worker_envs: false
+    shuffle_sequences: true
+    model:
+        custom_model: task_agnostic_policy_type1
+        custom_options:
+            log_std_type: constant
+            sample_std: 0.2
+            lstm_enable: false
+            task_encoder_enable: true
+            task_encoder_output_dim: 32
+            body_encoder_enable: true
+            body_encoder_output_dim: 32
+            body_encoder_learnable: true
+            body_encoder_weights: data/etc/pretrained_model/fencing/0.95/body_encoder.pt
+            motor_decoder_learnable: false
+            motor_decoder_weights: data/etc/pretrained_model/fencing/0.95/motor_decoder.pt
+    num_workers: 8
+    num_gpus: 0
+    batch_mode: truncate_episodes
+    observation_filter: NoFilter
+    multiagent: None
+    env_config:
+        lazy_creation: false
+        project_dir: /private/home/jungdam/Research/ScaDive/
+        fps_sim: 480
+        fps_con: 30
+        self_collision: true
+        add_noise: false
+        verbose: false
+        state:
+            # 'body', 'imitation', 'interaction', 'task'
+            choices: ['body', 'task']
+        action:
+            # 'absolute', 'relative'
+            type: "absolute"
+            range_min: -3.0
+            range_max: 3.0
+            range_min_pol: -3.0
+            range_max_pol: 3.0
+        reward: 
+            # 'sum', 'mul'
+            type: sum
+            # 'pose', 'vel', 'ee', 'root', 'com', 'interaction'
+            choices: []
+            fn_def:
+                default:
+                    name: total
+                    op: add
+                    child_nodes:
+                      - name: out_of_stage
+                        op: leaf
+                        weight: 5.0
+                        kernel: 
+                            type: none
+                      - name: falldown
+                        op: leaf
+                        weight: 10.0
+                        kernel: 
+                            type: none
+                      - name: win
+                        op: leaf
+                        weight: 100.0
+                        kernel: 
+                            type: none
+            fn_map:
+                - default
+                - default
+        early_term:
+            # 'sim_div', 'sim_window', task_end', 'falldown', 'low_reward'
+            choices:
+                - task_end
+                - falldown
+            falldown_contactable_body:
+                - lankle
+                - lknee
+                - rankle
+                - rknee
+            eoe_margin: 0.5
+        character:
+            name:
+                - player1
+                - player2
+            char_info_module:
+                - humanoid_fencing_char_info.py
+                - humanoid_fencing_char_info.py
+            sim_char_file:
+                - data/character/humanoid_fencing.urdf
+                - data/character/humanoid_fencing.urdf
+            ref_motion_scale:
+                - 1.0
+                - 1.0
+            base_motion_file:
+                - data/motion/multiagent/fencing/player1.bvh
+                - data/motion/multiagent/fencing/player2.bvh
+            actuation: 
+                - spd
+                - spd
+            self_collision: 
+                - true
+                - true
+            environment_file: []
