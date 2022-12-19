@@ -81,8 +81,8 @@ config:
                   init_weight: 
                       name: normc
                       std: 0.01
-            motor_decoder_learnable: true
-            motor_decoder_load_weights: "/checkpoint/yzhang3027/exp/CMUMotionPriorExp07/DDPPO_HumanoidImitationInteractionGraph_eb17e_00000_0_2022-11-29_09-40-30/task_agnostic_policy_motor_decoder.pt"
+            # motor_decoder_learnable: true
+            # motor_decoder_load_weights: "/checkpoint/yzhang3027/exp/CMUMotionPriorExp07/DDPPO_HumanoidImitationInteractionGraph_eb17e_00000_0_2022-11-29_09-40-30/task_agnostic_policy_motor_decoder.pt"
 
 
 

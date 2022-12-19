@@ -213,6 +213,18 @@ class Interaction(object):
                     edge = [i,neighbor_vert]
                     edges.append(edge)
             edges = np.array(edges).T
+        elif type == "interaction_mesh_remove_self_obj_vert":
+            filtered_verts = [15,16,17,18,19,20,21,22]
+            tet = Delaunay(self.vert)
+            neighbors_indptr,neighbors_indices =  tet.vertex_neighbor_vertices
+            for i in range(len(tet.points)):
+                neighbors = neighbors_indices[neighbors_indptr[i]:neighbors_indptr[i+1]]
+                for neighbor_vert in neighbors:
+                    if i in filtered_verts and neighbor_vert in filtered_verts:
+                        continue
+                    edge = [i,neighbor_vert]
+                    edges.append(edge)
+            edges = np.array(edges).T     
         return edges
 class Mesh(object):
     def __init__(self):

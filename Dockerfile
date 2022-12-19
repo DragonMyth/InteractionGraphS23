@@ -35,13 +35,17 @@ libbz2-dev \
 && rm -rf /var/lib/apt/lists/*
 
 
+# RUN adduser --disabled-password --gecos '' yunbo
+# RUN adduser yunbo sudo
+# RUN echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+WORKDIR /home/yunbo/
+ENV HOME /home/yunbo
+RUN chmod a+rwx /home/yunbo/
+# USER yunbo
 
-WORKDIR /home/ubuntu
-ENV HOME /home/ubuntu
-RUN chmod a+rwx /home/ubuntu/
 RUN wget https://www.python.org/ftp/python/3.7.12/Python-3.7.12.tgz
 RUN tar -xf Python-3.7.12.tgz
-WORKDIR /home/ubuntu/Python-3.7.12
+WORKDIR /home/yunbo/Python-3.7.12
 RUN ./configure --enable-optimization
 RUN make -j 8
 RUN sudo make install
@@ -65,11 +69,11 @@ RUN python -m pip install --upgrade pip
 # RUN conda create --name 'dev' -q python=3.7.12
 # RUN virtualenv venv
 # RUN source ./venv/bin/activate
-WORKDIR /home/ubuntu/
+WORKDIR /home/yunbo/
 RUN git clone https://github.com/DragonMyth/fairmotion.git
-WORKDIR /home/ubuntu/fairmotion
+WORKDIR /home/yunbo/fairmotion
 RUN pip install -e .
-WORKDIR /home/ubuntu/ScaDive
+WORKDIR /home/yunbo/ScaDive
 RUN pip install pybullet==3.0.8 ray[rllib]==1.8.0 pandas requests
 RUN pip install gym==0.18.0
 RUN pip install torch==1.10.0
