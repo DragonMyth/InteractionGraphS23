@@ -292,7 +292,8 @@ class Env(env_humanoid_base.Env):
             self._start_time[i] = time 
           
         self.episode_start_time = time
-        self.episode_expected_duration = ref_motion[0].length()-time  
+        horizon_duration = self._config['horizon']/self._config['fps_con']
+        self.episode_expected_duration = min(ref_motion[0].length()-time,horizon_duration) 
     def callback_reset_prev(self, info):
 
         ''' Choose a reference motion randomly whenever reset '''

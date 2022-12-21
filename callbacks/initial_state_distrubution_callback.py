@@ -19,6 +19,7 @@ class InitialStateDistributionCallback(DefaultCallbacks):
 
         self.initial_state_bins = None
         self.initial_state_count = None
+    
     def on_episode_start(self, 
                          *,
                          worker: "RolloutWorker",
@@ -47,7 +48,6 @@ class InitialStateDistributionCallback(DefaultCallbacks):
         ## Fix the episode length
         ratio = (end_time-start_time)/expected_duration
         full_length = episode.last_info_for('player1')['episode_full_length']
-
         episode.hist_data['episode_duration'] = [(end_time-start_time)]
         episode.hist_data['episode_start_time'] = [start_time]
         episode.hist_data['episode_expected_duration'] = [expected_duration]
