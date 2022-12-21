@@ -19,7 +19,7 @@ class InitialStateDistributionCallback(DefaultCallbacks):
 
         self.initial_state_bins = None
         self.initial_state_count = None
-    def on_episode_start(self,
+    def on_episode_start(self, 
                          *,
                          worker: "RolloutWorker",
                          base_env: BaseEnv,
@@ -97,7 +97,7 @@ class InitialStateDistributionCallback(DefaultCallbacks):
         )
         # ray.get(all_collected)
 
-        if iteration % checkpoint_freq == 0:
+        if iteration % checkpoint_freq == 0 or iteration == 1:
             new_dist_data = {
 
                 'total_ratios':self.initial_state_bins,
