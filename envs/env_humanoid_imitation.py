@@ -50,7 +50,7 @@ class Env(env_humanoid_base.Env):
         self._ref_motion_all = []
         self._ref_motion_file_names = []
         for i in range(self._num_agent):
-            ref_motion_all, ref_motion_file_names = \
+            ref_motion_all, ref_motion_file_names, _ = \
                 motion_utils.load_motions(
                     ref_motion_file[i], 
                     None,

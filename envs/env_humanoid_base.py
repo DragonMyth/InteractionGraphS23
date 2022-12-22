@@ -19,6 +19,7 @@ from fairmotion.data import bvh,asfamc
 
 from envs import env_humanoid_tracking
 import sim_agent
+import importlib.util
 
 from abc import ABCMeta, abstractmethod
 
@@ -37,26 +38,46 @@ class Env(metaclass=ABCMeta):
             if string=="relative": return cls.Relative
             raise NotImplementedError
     def __init__(self, config):
-        config             = copy.deepcopy(config)
-        project_dir        = config['project_dir']
-        sim_char_file      = config['character'].get('sim_char_file')
-        base_motion_file   = config['character'].get('base_motion_file')
-        ref_motion_file    = config['character'].get('ref_motion_file')
-        joint_correction   = config['character'].get('joint_correction')
-        environment_file   = config['character'].get('environment_file')
+        config                  = copy.deepcopy(config)
+        project_dir             = config['project_dir']
+        kin_char_file           = config['character'].get('kin_char_file')
+        kin_char_info_module    = config["character"].get("kin_char_info_module")
+        base_motion_file        = config['character'].get('base_motion_file')
+        ref_motion_file         = config['character'].get('ref_motion_file')
+        joint_correction        = config['character'].get('joint_correction')
+        environment_file        = config['character'].get('environment_file')
         reshape_ref = config['character'].get('reshape_ref',False)
         ''' Create a base tracking environment '''
 
         self._base_env = env_humanoid_tracking.Env(config)
-        
+
         ''' Append project_dir to the given file path '''
+        if kin_char_file is None:
+            kin_char_file = config['character'].get('sim_char_file')
+        if kin_char_info_module is None:
+            kin_char_info_module = config["character"].get("char_info_module")
         
-        for i in range(len(sim_char_file)):
+        kin_char_info = []
+        for i in range(self._base_env._num_agent):
+            kin_char_info_module[i] = os.path.join(project_dir, kin_char_info_module[i])
+            kin_char_file[i] = os.path.join(project_dir, kin_char_file[i])
+
+            spec = importlib.util.spec_from_file_location(
+                "kin_char_info%d"%(i), kin_char_info_module[i])
+            char_info = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(char_info)
+            kin_char_info.append(char_info)
+
+        print("kin_char_file", kin_char_file)
+        print("kin_char_info_module", kin_char_info_module)
+        
+        for i in range(self._base_env._num_agent):
             if type(base_motion_file[i]) is list:
                 for j in range(len(base_motion_file[i])):
                     base_motion_file[i][j] = os.path.join(project_dir, base_motion_file[i][j])
             else:
                 base_motion_file[i] = os.path.join(project_dir, base_motion_file[i])
+        
         if environment_file is not None:
             for i in range(len(environment_file)):
                 environment_file[i] = os.path.join(project_dir, environment_file[i])
@@ -208,8 +229,8 @@ class Env(metaclass=ABCMeta):
             if reshape_ref:
                 self._kin_agent.append(
                     sim_agent.SimAgent(pybullet_client=self._base_env._pb_client, 
-                                    model_file=sim_char_file[i],
-                                    char_info=self._sim_agent[i]._char_info,
+                                    model_file=kin_char_file[i],
+                                    char_info=kin_char_info[i],
                                     ref_scale=self._sim_agent[i]._ref_scale,
                                     ref_height_fix=self._sim_agent[i]._ref_height_fix,
                                     self_collision=self._sim_agent[i]._self_collision,
@@ -219,8 +240,8 @@ class Env(metaclass=ABCMeta):
             else:
                 self._kin_agent.append(
                     sim_agent.SimAgent(pybullet_client=self._base_env._pb_client, 
-                                    model_file=sim_char_file[i],
-                                    char_info=self._sim_agent[i]._char_info,
+                                    model_file=kin_char_file[i],
+                                    char_info=kin_char_info[i],
                                     ref_scale=self._sim_agent[i]._ref_scale,
                                     self_collision=self._sim_agent[i]._self_collision,
                                     kinematic_only=True,
@@ -405,6 +426,9 @@ class Env(metaclass=ABCMeta):
 
         agent = self._sim_agent[idx]
         char_info = agent._char_info
+
+        if char_info.bvh_map is None:
+            return action
         
         ''' the current posture should be deepcopied because action will modify it '''
         if self._action_type == Env.ActionMode.Relative:
@@ -447,6 +471,10 @@ class Env(metaclass=ABCMeta):
                 dof_cnt += 1
             else:
                 raise NotImplementedError
+
+        if dof_cnt == 0:
+            return None
+        
         '''
         Compute new xforms
         '''
@@ -609,10 +637,9 @@ class Env(metaclass=ABCMeta):
                 act_space = self._action_space[i]['torque']                
                 action_dict["torque"] = act_space.norm_to_real(actions[i][cnt:])
             else:
-                act_space = self._action_space[i]['target_pose']                
-                action_dict["pose"] = self.compute_target_pose(
-                    i, 
-                    act_space.norm_to_real(actions[i][cnt:]))
+                act_space = self._action_space[i]['target_pose']
+                act_denom = act_space.norm_to_real(actions[i][cnt:])
+                action_dict["pose"] = self.compute_target_pose(i, act_denom)
                 self._target_pose[i] = action_dict["pose"]
 
             action_dict_list.append(action_dict)

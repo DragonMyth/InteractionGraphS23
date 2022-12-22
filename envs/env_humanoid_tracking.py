@@ -53,7 +53,7 @@ class Env(object):
         print(config['character'])
         char_info_module             = config["character"]["char_info_module"]
         sim_char_file                = config["character"]["sim_char_file"]
-        character_reshapes            = config["character"].get("reshape",[{}])
+        character_reshapes           = config["character"].get("reshape",[{}])
         self._num_agent = len(sim_char_file)
 
         ref_motion_scale             = \
@@ -182,7 +182,7 @@ class Env(object):
         ref_motion_scale, 
         ref_motion_height_fix,
         physics_param,
-        character_reshapes
+        character_reshapes,
         ):
         self._pb_client.resetSimulation()
         self._agent = []

@@ -4,8 +4,14 @@ from OpenGL.GLU import *
 import numpy as np
 import pybullet
 from fairmotion.viz import gl_render
-from fairmotion.ops import conversions
+from fairmotion.ops import conversions, quaternion
 from fairmotion.utils import constants
+
+import pywavefront
+from pywavefront import visualization
+
+import collada
+import renderer
 
 mesh_database = {}
 
@@ -111,19 +117,31 @@ def render_geom(data_visual, color=None, T=None):
     # elif type==pybullet.GEOM_PLANE:
     #     pass
     elif type==pybullet.GEOM_MESH:
-        import pywavefront
-        from pywavefront import visualization
         filename = data_visual[4].decode("UTF-8")
         if filename in mesh_database.keys():
-            obj = mesh_database[filename]
+            ext, data = mesh_database[filename]
         else:
             ext = os.path.splitext(filename)[-1].lower()
-            if not ext=='.obj':
-                raise NotImplementedError
-            obj = pywavefront.Wavefront(filename)
-            mesh_database[filename] = obj
-        gl_render.glColor(color)
-        visualization.draw(obj)
+            if ext=='.obj':
+                data = pywavefront.Wavefront(filename)
+            elif ext=='.dae':
+                collada_file = collada.Collada(filename, ignore=[
+                    collada.common.DaeUnsupportedError,
+                    collada.common.DaeBrokenRefError])
+                data = renderer.GLSLRenderer(collada_file)
+            else:
+                raise NotImplementedError("Unknown Extension:"+ext)
+            mesh_database[filename] = (ext, data)
+        if ext=='.obj':
+            gl_render.glColor(color)
+            visualization.draw(data)
+        elif ext=='.dae':
+            pass
+            data.render(0, 0, 0)
+            # gl_render.render_cube(
+            #     constants.EYE_T, size=[0.1, 0.1, 0.1], color=color)
+        else:
+            raise NotImplementedError("Unknown Extension:"+ext)
     else:
         raise NotImplementedError()
     glPopMatrix()
@@ -160,23 +178,25 @@ def render_geom_info(data_visual, color=None, scale=1.0, T=None, line_width=1.0,
     # elif type==pybullet.GEOM_PLANE:
     #     pass
     elif type==pybullet.GEOM_MESH:
-        import pywavefront
-        from pywavefront import visualization
-        filename = data_visual[4].decode("UTF-8")
-        if filename in mesh_database.keys():
-            obj = mesh_database[filename]
-        else:
-            ext = os.path.splitext(filename)[-1].lower()
-            if not ext=='.obj':
-                raise NotImplementedError
-            obj = pywavefront.Wavefront(filename)
-            mesh_database[filename] = obj
-        gl_render.glColor(color)
-        glDisable(GL_LIGHTING)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        visualization.draw(obj)
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        glEnable(GL_LIGHTING)
+        pass
+        # render_geom()
+        # import pywavefront
+        # from pywavefront import visualization
+        # filename = data_visual[4].decode("UTF-8")
+        # if filename in mesh_database.keys():
+        #     obj = mesh_database[filename]
+        # else:
+        #     ext = os.path.splitext(filename)[-1].lower()
+        #     if not ext=='.obj':
+        #         raise NotImplementedError
+        #     obj = pywavefront.Wavefront(filename)
+        #     mesh_database[filename] = obj
+        # gl_render.glColor(color)
+        # glDisable(GL_LIGHTING)
+        # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        # visualization.draw(obj)
+        # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        # glEnable(GL_LIGHTING)
     else:
         raise NotImplementedError()
     glPopMatrix()
@@ -253,31 +273,50 @@ def render_joints(pb_client, model):
     for j in range(pb_client.getNumJoints(model)):
         joint_info = pb_client.getJointInfo(model, j)
         joint_local_p, joint_local_Q, link_idx = joint_info[14], joint_info[15], joint_info[16]
-        T_joint_local = conversions.Qp2T(
-            np.array(joint_local_Q), np.array(joint_local_p))
+        joint_local_p = np.array(joint_local_p)
+        joint_local_Q = np.array(joint_local_Q)
+        T_joint_local = conversions.Qp2T(joint_local_Q, joint_local_p)
+        P_joint_local = conversions.p2T(joint_local_p)
         if link_idx == -1:
             link_world_p, link_world_Q = pb_client.getBasePositionAndOrientation(model)
         else:
             link_info = pb_client.getLinkState(model, link_idx)
             link_world_p, link_world_Q = link_info[0], link_info[1]
-        T_link_world = conversions.Qp2T(
-            np.array(link_world_Q), np.array(link_world_p))
-        T_joint_world = np.dot(T_link_world, T_joint_local)
-        # Render joint position
+        link_world_p = np.array(link_world_p)
+        link_world_Q = np.array(link_world_Q)
+        T_link_world = conversions.Qp2T(link_world_Q, link_world_p)
+        
         glPushMatrix()
-        gl_render.glTransform(T_joint_world)
-        gl_render.render_point(np.zeros(3), radius=0.02, color=[0, 0, 0, 1])
+        gl_render.glTransform(T_link_world)
+        
+        glPushMatrix()
+        gl_render.glTransform(P_joint_local)
+
+        # # Render joint transform representing zero pose
+        # gl_render.render_transform(constants.eye_T(), scale=0.2)
+        
         # Render joint axis depending on joint types
         joint_type = joint_info[2]
         if joint_type == pb_client.JOINT_FIXED:
             pass
         elif joint_type == pb_client.JOINT_REVOLUTE:
-            axis = joint_info[13]
-            gl_render.render_line(np.zeros(3), axis, color=[1, 0, 0, 1], line_width=1.0)
+            axis = np.array(joint_info[13])
+            axis = axis/np.linalg.norm(axis)
+            gl_render.render_line(
+                np.zeros(3), 0.25*axis, color=[0.5, 0.5, 0.5, 1], line_width=2.0)
         elif joint_type == pb_client.JOINT_SPHERICAL:
-            gl_render.render_transform(constants.eye_T(), scale=0.2)
+            gl_render.render_transform(constants.eye_T(), scale=0.1)
         else:
             raise NotImplementedError()
+        glPopMatrix()
+
+        if joint_type != pb_client.JOINT_FIXED:
+            glPushMatrix()
+            gl_render.glTransform(T_joint_local)
+            # Render joint transform representing the current pose
+            gl_render.render_transform(constants.eye_T(), scale=0.1)
+            glPopMatrix()
+            
         glPopMatrix()
 
 def render_joint_geoms(

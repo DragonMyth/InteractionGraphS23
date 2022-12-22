@@ -187,7 +187,7 @@ class Env(env_humanoid_base.Env):
             self._obj_sim_agent.append(obj_sim_agent)
             self._obj_kin_agent.append(obj_kin_agent)
 
-            ref_motion_all, ref_motion_file_names,ref_motion_file_asf_names= \
+            ref_motion_all, ref_motion_file_names, ref_motion_file_asf_names= \
                 motion_utils.load_motions(
                     ref_motion_file[i], 
                     None,

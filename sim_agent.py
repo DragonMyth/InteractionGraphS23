@@ -16,6 +16,16 @@ if profile:
     from fairmotion.viz.utils import TimeChecker
     tc = TimeChecker()
 
+def project_rotation_1D(R, axis):
+    """
+    Project a 3D rotation matrix to the closest 1D rotation
+    when a rotational axis is given
+    """
+    Q, angle = quaternion.Q_closest(
+        conversions.R2Q(R), [0.0, 0.0, 0.0, 1.0], axis,
+    )
+    return angle
+
 class SimAgent(object):
     '''
     This defines a simulated character in the scene.
@@ -48,7 +58,7 @@ class SimAgent(object):
                  ref_height_fix=0.0,
                  verbose=False, 
                  kinematic_only=False,
-                 self_collision=True,
+                 self_collision="all",
                  reshape_config = {},
                  name="agent",
                  actuation="none",
@@ -59,20 +69,39 @@ class SimAgent(object):
         self._char_info = char_info
         self._self_collision = self_collision
         self._reshape_config = reshape_config
+        if hasattr(self._char_info, "mobile"):
+            self._mobile = self._char_info.mobile
+        else:
+            self._mobile = True
+        if hasattr(self._char_info, "root_pos"):
+            root_pos = self._char_info.root_pos
+        else:
+            root_pos = [0, 0, 0]
+        if hasattr(self._char_info, "root_ori"):
+            root_ori = conversions.R2Q(self._char_info.root_ori)
+            root_ori = quaternion.Q_op(root_ori, op=['change_order'], xyzw_in=False)
+        else:
+            root_ori = [0, 0, 0, 1]
         # Load self._body_id file
         char_create_flags = self._pb_client.URDF_MAINTAIN_LINK_ORDER
-        if self_collision:
-            # char_create_flags = char_create_flags|\
-            #                     self._pb_client.URDF_USE_SELF_COLLISION|\
-            #                     self._pb_client.URDF_USE_SELF_COLLISION_EXCLUDE_ALL_PARENTS
+        if self_collision=="all" or self_collision is True:
             char_create_flags = char_create_flags|\
                                 self._pb_client.URDF_USE_SELF_COLLISION
-        self._body_id = self._pb_client.loadURDF(
-            model_file, 
-            [0, 0, 0],
-            globalScaling=scale,
-            useFixedBase=False,
-            flags=char_create_flags)
+        elif self_collision=="ignore_all_parents":
+            char_create_flags = char_create_flags|\
+                                self._pb_client.URDF_USE_SELF_COLLISION|\
+                                self._pb_client.URDF_USE_SELF_COLLISION_EXCLUDE_ALL_PARENTS
+        try:
+            self._body_id = self._pb_client.loadURDF(
+                model_file, 
+                basePosition=root_pos,
+                globalScaling=scale,
+                useFixedBase=not self._mobile,
+                flags=char_create_flags)
+            self._pb_client.resetBasePositionAndOrientation(
+                self._body_id, root_pos, [0, 0, 0, 1])
+        except p.error as e:
+            raise p.error("Cannot load robot model: " + str(e))
         
         self.modify_agent_geom(reshape_config,verbose)
         for pair in self._char_info.collison_ignore_pairs:
@@ -125,7 +154,7 @@ class SimAgent(object):
             else:
                 raise NotImplementedError()
         self._num_dofs = np.sum(self._joint_dofs)
-        self._joint_pose_init, self._joint_vel_init = self.get_joint_states()
+        self._joint_pos_init, self._joint_vel_init = self.get_joint_states()
         self._joint_parent_link = []
         self._joint_xform_from_parent_link = []
 
@@ -159,7 +188,7 @@ class SimAgent(object):
                 continue
             self._act_joint_indices.append(j)
             ''' Collect target poses and vels '''
-            self._act_target_positions.append(self._joint_pose_init[j])
+            self._act_target_positions.append(self._joint_pos_init[j])
             self._act_target_velocities.append(self._joint_vel_init[j])
             ''' Collect max forces '''
             if joint_type == self._pb_client.JOINT_REVOLUTE:
@@ -182,12 +211,12 @@ class SimAgent(object):
                 self._act_kps.append(self._char_info.kp['cpd'][j])
                 self._act_kds.append(self._char_info.kd['cpd'][j])
             self._act_max_forces.append(max_force)
-        # print(self._act_joint_indices)
-        # print(self._act_target_positions)
-        # print(self._act_target_velocities)
-        # print(self._act_kps)
-        # print(self._act_kds)
-        # print(self._act_max_forces)
+        # print("_act_joint_indices", self._act_joint_indices)
+        # print("_act_target_positions", self._act_target_positions)
+        # print("_act_target_velocities", self._act_target_velocities)
+        # print("_act_kps", self._act_kps)
+        # print("_act_kds", self._act_kds)
+        # print("_act_max_forces", self._act_max_forces)
         # exit(0)
 
     def modify_agent_geom(
@@ -501,25 +530,27 @@ class SimAgent(object):
         '''
         Velocity should be represented w.r.t. local frame
         '''
-        # Root joint
-        T = pose.get_transform(
-            self._char_info.bvh_map[self._char_info.ROOT], 
-            local=False)
-        Q, p = conversions.T2Qp(T)
-        p *= self._ref_scale
-        p += self._ref_height_fix_v
-        
-        v, w = None, None
-        if vel is not None:
-            # Here we give a root orientation to get velocities represeted in world frame.
-            R = conversions.Q2R(Q)
-            w = vel.get_angular(
-                self._char_info.bvh_map[self._char_info.ROOT], False, R)
-            v = vel.get_linear(
-                self._char_info.bvh_map[self._char_info.ROOT], False, R)
-            v *= self._ref_scale
 
-        bu.set_base_pQvw(self._pb_client, self._body_id, p, Q, v, w)
+        if self._char_info.bvh_map[self._char_info.ROOT]:
+            # Root joint
+            T = pose.get_transform(
+                self._char_info.bvh_map[self._char_info.ROOT], 
+                local=False)
+            Q, p = conversions.T2Qp(T)
+            p *= self._ref_scale
+            p += self._ref_height_fix_v
+            
+            v, w = None, None
+            if vel is not None:
+                # Here we give a root orientation to get velocities represeted in world frame.
+                R = conversions.Q2R(Q)
+                w = vel.get_angular(
+                    self._char_info.bvh_map[self._char_info.ROOT], False, R)
+                v = vel.get_linear(
+                    self._char_info.bvh_map[self._char_info.ROOT], False, R)
+                v *= self._ref_scale
+
+            bu.set_base_pQvw(self._pb_client, self._body_id, p, Q, v, w)
 
         # Other joints
         indices = []
@@ -533,7 +564,7 @@ class SimAgent(object):
             # When there is no matching between the given pose and the simulated character,
             # the character just tries to hold its initial pose
             if self._char_info.bvh_map[j] is None:
-                state_pos.append(self._joint_pose_init[j])
+                state_pos.append(self._joint_pos_init[j])
                 state_vel.append(self._joint_vel_init[j])
             else:
                 T = pose.get_transform(self._char_info.bvh_map[j], local=True)            
@@ -572,6 +603,10 @@ class SimAgent(object):
                         pose_data.append(constants.eye_T())
                     elif joint_type == self._pb_client.JOINT_SPHERICAL:
                         pose_data.append(conversions.Q2T(ps[j]))
+                    # elif joint_type == self._pb_client.JOINT_REVOLTE:
+                    #     pass
+                    #     # angle = math.project_rotation_1D(conversions.Q2R(ps[j]), axis=)
+                    #     # pose_data.append(math.project_rotation_1D(conversions.Q2T(ps[j])))
                     else:
                         raise NotImplementedError()
         return pose_data
@@ -785,6 +820,31 @@ class SimAgent(object):
                 self._pb_client.LINK_FRAME)
 
         if self._actuation != SimAgent.Actuation.TQ:
+            # if self._char_info.bvh_map is None:
+            #     '''
+            #     When there is no bvh mapping, action_dict should includes numpy arrays
+            #     '''
+            #     cnt = 0
+            #     for idx, j in enumerate(self._act_joint_indices):
+            #         joint_type = self.get_joint_type(j)
+            #         target_pos = self._joint_pos_init[j]
+            #         target_vel = self._joint_vel_init[j]
+            #         if joint_type == self._pb_client.JOINT_REVOLUTE:
+            #             if pose is not None:
+            #                 target_pos += pose[cnt:cnt+1]
+            #             if vel is not None:
+            #                 target_vel += vel[cnt:cnt+1]
+            #             cnt += 1
+            #         elif joint_type == self._pb_client.JOINT_SPHERICAL:
+            #             if pose is not None:
+            #                 target_pos += pose[cnt:cnt+3]
+            #             if vel is not None:
+            #                 target_vel += vel[cnt:cnt+3]
+            #             cnt += 3
+            #         else:
+            #             raise NotImplementedError
+            #         self._act_target_positions[idx] = target_pos
+            #         self._act_target_velocities[idx] = target_vel
             if self._act_all_spherical_joints:
                 '''
                 If all actuable joints are spherical (we do not have to check joint types), 
@@ -792,7 +852,10 @@ class SimAgent(object):
                 '''
                 Ts, ws = [], []
                 for idx, j in enumerate(self._act_joint_indices):
-                    T = pose.get_transform(self._char_info.bvh_map[j], local=True)
+                    if pose is None:
+                        T = constants.EYE_T
+                    else:
+                        T = pose.get_transform(self._char_info.bvh_map[j], local=True)
                     if vel is None:
                         w = constants.ZERO_P
                     else: 
@@ -814,7 +877,7 @@ class SimAgent(object):
                     joint_type = self.get_joint_type(j)
                     if self._char_info.bvh_map[j] == None:
                         ''' Use the initial pose if no mapping exists '''
-                        target_pos = self._joint_pose_init[j]
+                        target_pos = self._joint_pos_init[j]
                         target_vel = self._joint_vel_init[j]
                     else:
                         ''' 
@@ -981,7 +1044,7 @@ class SimAgent(object):
             ''' Collect target poses and vels '''
             if self._char_info.bvh_map[j] == None:
                 ''' Use the initial pose if no mapping exists '''
-                target_pos = self._joint_pose_init[j]
+                target_pos = self._joint_pos_init[j]
                 target_vel = self._joint_vel_init[j]
             else:
                 ''' 
