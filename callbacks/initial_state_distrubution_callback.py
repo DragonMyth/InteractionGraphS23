@@ -68,7 +68,7 @@ class InitialStateDistributionCallback(DefaultCallbacks):
         config = result['config']
         fps = config['env_config']['fps_con']
         iteration = trainer.iteration
-        checkpoint_freq = 100
+        checkpoint_freq = 10
         if self.initial_state_bins is None:
             full_length = result['hist_stats']['full_length'][-1]
             full_length_frames = int(full_length * fps)
@@ -87,7 +87,7 @@ class InitialStateDistributionCallback(DefaultCallbacks):
         average_states = np.clip(np.nan_to_num(self.initial_state_bins/self.initial_state_count),0,1)
         average_ratio_inverse_dist = 1-average_states
         average_ratio_inverse_dist = average_ratio_inverse_dist/np.sum(average_ratio_inverse_dist)
-
+        
         def set_init_dist(env):
             env.set_task.remote(average_ratio_inverse_dist)
 
