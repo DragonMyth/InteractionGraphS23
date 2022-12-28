@@ -2,10 +2,13 @@ import pickle as pkl
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-log_dir = '/checkpoint/yzhang3027/exp/CMUMotionPriorBoxThrowExp03/DDPPO_HumanoidImitationInteractionGraphTwo_bc436_00000_0_2022-12-12_23-49-56'
+import matplotlib
+matplotlib.use('TkAgg')
+
+# log_dir = '/checkpoint/yzhang3027/exp/CMUMotionPriorBoxThrowExp03/DDPPO_HumanoidImitationInteractionGraphTwo_bc436_00000_0_2022-12-12_23-49-56'
 
 # log_dir = '/checkpoint/yzhang3027/exp/CMUMotionPriorBoxThrowExp04/DDPPO_HumanoidImitationInteractionGraphTwo_bce10_00000_0_2022-12-12_23-49-57'
-
+log_dir = '/home/yunbo/character_interaction/CMUMotionPriorBoxThrow_Exp05_to_Exp10/exp/CMUMotionPriorBoxThrowExp05/DDPPO_HumanoidImitationInteractionGraphTwo_c1090_00000_0_2022-12-22_11-42-22'
 ranges = np.arange(10)+1
 for i in ranges:
     chpt = i*100

@@ -19,7 +19,8 @@ class InitialStateDistributionCallback(DefaultCallbacks):
 
         self.initial_state_bins = None
         self.initial_state_count = None
-    def on_episode_start(self,
+    
+    def on_episode_start(self, 
                          *,
                          worker: "RolloutWorker",
                          base_env: BaseEnv,
@@ -47,7 +48,6 @@ class InitialStateDistributionCallback(DefaultCallbacks):
         ## Fix the episode length
         ratio = (end_time-start_time)/expected_duration
         full_length = episode.last_info_for('player1')['episode_full_length']
-
         episode.hist_data['episode_duration'] = [(end_time-start_time)]
         episode.hist_data['episode_start_time'] = [start_time]
         episode.hist_data['episode_expected_duration'] = [expected_duration]
@@ -68,7 +68,7 @@ class InitialStateDistributionCallback(DefaultCallbacks):
         config = result['config']
         fps = config['env_config']['fps_con']
         iteration = trainer.iteration
-        checkpoint_freq = 100
+        checkpoint_freq = 10
         if self.initial_state_bins is None:
             full_length = result['hist_stats']['full_length'][-1]
             full_length_frames = int(full_length * fps)
@@ -87,7 +87,7 @@ class InitialStateDistributionCallback(DefaultCallbacks):
         average_states = np.clip(np.nan_to_num(self.initial_state_bins/self.initial_state_count),0,1)
         average_ratio_inverse_dist = 1-average_states
         average_ratio_inverse_dist = average_ratio_inverse_dist/np.sum(average_ratio_inverse_dist)
-
+        
         def set_init_dist(env):
             env.set_task.remote(average_ratio_inverse_dist)
 
@@ -97,7 +97,7 @@ class InitialStateDistributionCallback(DefaultCallbacks):
         )
         # ray.get(all_collected)
 
-        if iteration % checkpoint_freq == 0:
+        if iteration % checkpoint_freq == 0 or iteration == 1:
             new_dist_data = {
 
                 'total_ratios':self.initial_state_bins,

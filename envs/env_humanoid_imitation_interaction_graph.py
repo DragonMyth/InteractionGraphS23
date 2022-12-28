@@ -62,7 +62,7 @@ class Env(env_humanoid_base.Env):
         self._object_interaction_vert_cnt = 0
         
         self._interaction_filters = {}
-
+        
         if self._interaction_joints is not None:
             joints = []
             joint_idx_list = self._sim_agent[0]._char_info.joint_idx
