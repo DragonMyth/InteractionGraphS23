@@ -36,6 +36,11 @@ qtcreator \
 qtbase5-dev \
 qt5-qmake \
 cmake \
+libxcb-randr0-dev \
+libxcb-xtest0-dev \
+libxcb-xinerama0-dev \
+libxcb-shape0-dev \
+libxcb-xkb-dev \
 && rm -rf /var/lib/apt/lists/*
 
 # RUN adduser --disabled-password --gecos '' yunbo
@@ -74,13 +79,13 @@ RUN python -m pip install --upgrade pip
 # RUN source ./venv/bin/activate
 WORKDIR /home/yunbo/
 # RUN git clone https://github.com/DragonMyth/fairmotion.git
-RUN git clone https://github.com/facebookresearch/fairmotion
-WORKDIR /home/yunbo/fairmotion
-RUN pip install -e .
 WORKDIR /home/yunbo/ScaDive
 RUN pip install pybullet==3.0.8 ray[rllib]==1.8.0 pandas requests
 RUN pip install gym==0.18.0 
-RUN pip install PyQt5==5.9.2
-
+# RUN pip install PyQt5
 # RUN pip install torch==1.10.0
+WORKDIR /home/yunbo/
+RUN git clone https://github.com/facebookresearch/fairmotion
+WORKDIR /home/yunbo/fairmotion
+RUN pip install -e .
 RUN pip install pycollada pywavefront

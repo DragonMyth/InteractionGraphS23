@@ -177,24 +177,24 @@ def render_geom_info(data_visual, color=None, scale=1.0, T=None, line_width=1.0,
     #     pass
     elif type==pybullet.GEOM_MESH:
         pass
-        # render_geom()
-        # import pywavefront
-        # from pywavefront import visualization
-        # filename = data_visual[4].decode("UTF-8")
-        # if filename in mesh_database.keys():
-        #     obj = mesh_database[filename]
-        # else:
-        #     ext = os.path.splitext(filename)[-1].lower()
-        #     if not ext=='.obj':
-        #         raise NotImplementedError
-        #     obj = pywavefront.Wavefront(filename)
-        #     mesh_database[filename] = obj
-        # gl_render.glColor(color)
-        # glDisable(GL_LIGHTING)
-        # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-        # visualization.draw(obj)
-        # glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
-        # glEnable(GL_LIGHTING)
+        render_geom()
+        import pywavefront
+        from pywavefront import visualization
+        filename = data_visual[4].decode("UTF-8")
+        if filename in mesh_database.keys():
+            obj = mesh_database[filename]
+        else:
+            ext = os.path.splitext(filename)[-1].lower()
+            if not ext=='.obj':
+                raise NotImplementedError
+            obj = pywavefront.Wavefront(filename)
+            mesh_database[filename] = obj
+        gl_render.glColor(color)
+        glDisable(GL_LIGHTING)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        visualization.draw(obj)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+        glEnable(GL_LIGHTING)
     else:
         raise NotImplementedError()
     glPopMatrix()
@@ -254,17 +254,17 @@ def render_links(
             elif 'default' in color:
                 link_color = color['default']
 
-        if draw_link: 
-            render_geom(
-                data_visual=dv,
-                color=link_color)
-        if draw_link_info: 
-            render_geom_info(
-                data_visual=dv,
-                color=link_info_color, 
-                scale=link_info_scale, 
-                line_width=link_info_line_width,
-                num_slice=link_info_num_slice)
+        # if draw_link: 
+        #     render_geom(
+        #         data_visual=dv,
+        #         color=link_color)
+        # if draw_link_info: 
+        #     render_geom_info(
+        #         data_visual=dv,
+        #         color=link_info_color, 
+        #         scale=link_info_scale, 
+        #         line_width=link_info_line_width,
+        #         num_slice=link_info_num_slice)
         glPopMatrix()
 
 def render_joints(pb_client, model):

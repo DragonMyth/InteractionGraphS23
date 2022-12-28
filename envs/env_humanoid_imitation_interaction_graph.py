@@ -1763,6 +1763,7 @@ class Env(env_humanoid_base.Env):
         return self._base_env.get_render_data(agent)
 
     def render(self, rm):
+        super().render(rm)
 
         if rm.flag['custom1']:
             for i in range(self._num_agent):
@@ -1992,7 +1993,6 @@ class Env(env_humanoid_base.Env):
                 color=[0.6, 0.6, 0.6, 1.0])
 
 
-        super().render(rm)
 
 
 if __name__ == '__main__':
