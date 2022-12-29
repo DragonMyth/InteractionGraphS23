@@ -60,7 +60,9 @@ class Env(env_humanoid_base.Env):
         self._self_interaction_vert_cnt = 0
         self._oppo_interaction_vert_cnt = 0
         self._object_interaction_vert_cnt = 0
-        
+        self._full_matrix_dist = []
+        self._full_matrix_dist_raw = []
+
         self._interaction_filters = {}
 
         if self._interaction_joints is not None:
@@ -223,6 +225,8 @@ class Env(env_humanoid_base.Env):
             self._ref_motion_file_names.append(ref_motion_file_names)
             self._sim_interaction_points.append( None)
             self._kin_interaction_points.append( None)
+            self._full_matrix_dist.append(None)
+            self._full_matrix_dist_raw.append(None)
         """Load Saved Refernce Interaction Connectivity"""
         if self._load_ref_interaction is not None:
             ref_interaction_path = os.path.join(project_dir, self._load_ref_interaction)
@@ -1546,12 +1550,12 @@ class Env(env_humanoid_base.Env):
             dist[:-oppo_vert_cnt,self_vert_cnt:] = 0.5 * dist_old[:-oppo_vert_cnt,self_vert_cnt:]/(kin_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6) + 0.5* dist_old[:-oppo_vert_cnt,self_vert_cnt:]/(sim_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6)
            
             ## Use this to plot the splitted reward and for analysis
-            self.full_matrix_dist_raw = np.array(dist*dist)
+            self._full_matrix_dist_raw[idx] = np.array(dist*dist)
 
             dist = dist * dist * weights_full_mat
 
             ## Use this to plot the splitted reward and for analysis
-            self.full_matrix_dist = np.array(dist)
+            self._full_matrix_dist[idx] = np.array(dist)
 
             error['weighted_ig_pos_base_relative'] = np.sum(dist)
 
@@ -1918,7 +1922,7 @@ class Env(env_humanoid_base.Env):
 
                 # for i in range(self._num_agent):
                 edge_index = interaction_mesh[agent]
-                errs = np.array(self.full_matrix_dist)
+                errs = np.array(self._full_matrix_dist[agent])
                 sim_interaction_points = self._sim_interaction_points[agent]
                 pa = sim_interaction_points[edge_index[0]]
                 pb =  sim_interaction_points[edge_index[1]]
@@ -1929,7 +1933,7 @@ class Env(env_humanoid_base.Env):
                         rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
             if (not rm.flag['toggle_interaction']) or rm.flag['kin_model']:
                 edge_index = interaction_mesh[agent]
-                errs = np.array(self.full_matrix_dist)
+                errs = np.array(self._full_matrix_dist[agent])
                 kin_interaction_points = self._kin_interaction_points[agent]
                 pa = kin_interaction_points[edge_index[0]]
                 pb =  kin_interaction_points[edge_index[1]]
