@@ -1,4 +1,4 @@
 import os
-import sys
+# import sys
 
 from .GLSLRenderer import GLSLRenderer

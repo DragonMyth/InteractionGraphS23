@@ -571,26 +571,26 @@ class Env(object):
             ground_height = self.get_ground_height(i)
             if rm.flag['sim_model']:
                 rm.gl.glEnable(rm.gl.GL_DEPTH_TEST)
-                if self._use_default_ground:
-                    # This shadow render is only valid for the default ground
-                    if rm.flag['shadow']:
-                        rm.gl.glPushMatrix()
-                        d = np.array([1, 1, 1])
-                        d = d - math.projectionOnVector(d, self._v_up)
-                        offset = (0.002 + ground_height) * self._v_up
-                        rm.gl.glTranslatef(offset[0], offset[1], offset[2])
-                        rm.gl.glScalef(d[0], d[1], d[2])
-                        rm.bullet_render.render_model(
-                            self._pb_client, 
-                            sim_agent._body_id, 
-                            draw_link=True, 
-                            draw_link_info=False, 
-                            draw_joint=False, 
-                            draw_joint_geom=False, 
-                            ee_indices=None, 
-                            color=[0.5,0.5,0.5,1.0],
-                            lighting=False)
-                        rm.gl.glPopMatrix()
+                # if self._use_default_ground:
+                #     # This shadow render is only valid for the default ground
+                #     if rm.flag['shadow']:
+                #         rm.gl.glPushMatrix()
+                #         d = np.array([1, 1, 1])
+                #         d = d - math.projectionOnVector(d, self._v_up)
+                #         offset = (0.002 + ground_height) * self._v_up
+                #         rm.gl.glTranslatef(offset[0], offset[1], offset[2])
+                #         rm.gl.glScalef(d[0], d[1], d[2])
+                #         rm.bullet_render.render_model(
+                #             self._pb_client, 
+                #             sim_agent._body_id, 
+                #             draw_link=True, 
+                #             draw_link_info=False, 
+                #             draw_joint=False, 
+                #             draw_joint_geom=False, 
+                #             ee_indices=None, 
+                #             color=[0.5,0.5,0.5,1.0],
+                #             lighting=False)
+                #         rm.gl.glPopMatrix()
                 rm.bullet_render.render_model(
                     self._pb_client, 
                     sim_agent._body_id,
