@@ -1539,10 +1539,11 @@ class Env(env_humanoid_base.Env):
             kin_pos_dist = np.linalg.norm(kin_pairwise_dist_full_mat,axis=2)
 
             diff = sim_diff_2_base_ratio - kin_diff_2_base_ratio
-            dist = np.linalg.norm(diff,axis=2)
-
-            dist[self_vert_cnt:,:-oppo_vert_cnt] = 0.5 * dist[self_vert_cnt:,:-oppo_vert_cnt]/(kin_pos_dist[self_vert_cnt:,:-oppo_vert_cnt]+1e-6) + 0.5* dist[self_vert_cnt:,:-oppo_vert_cnt]/(sim_pos_dist[self_vert_cnt:,:-oppo_vert_cnt]+1e-6)
-            dist[:-oppo_vert_cnt,self_vert_cnt:] = 0.5 * dist[:-oppo_vert_cnt,self_vert_cnt:]/(kin_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6) + 0.5* dist[:-oppo_vert_cnt,self_vert_cnt:]/(sim_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6)
+            dist_old = np.linalg.norm(diff,axis=2)
+            
+            dist = np.array(dist_old)
+            dist[self_vert_cnt:,:-oppo_vert_cnt] = 0.5 * dist_old[self_vert_cnt:,:-oppo_vert_cnt]/(kin_pos_dist[self_vert_cnt:,:-oppo_vert_cnt]+1e-6) + 0.5* dist_old[self_vert_cnt:,:-oppo_vert_cnt]/(sim_pos_dist[self_vert_cnt:,:-oppo_vert_cnt]+1e-6)
+            dist[:-oppo_vert_cnt,self_vert_cnt:] = 0.5 * dist_old[:-oppo_vert_cnt,self_vert_cnt:]/(kin_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6) + 0.5* dist_old[:-oppo_vert_cnt,self_vert_cnt:]/(sim_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6)
            
             ## Use this to plot the splitted reward and for analysis
             self.full_matrix_dist_raw = np.array(dist*dist)
@@ -1764,6 +1765,7 @@ class Env(env_humanoid_base.Env):
         return self._base_env.get_render_data(agent)
 
     def render(self, rm):
+        super().render(rm)
 
         if rm.flag['custom1']:
             for i in range(self._num_agent):
@@ -1908,32 +1910,34 @@ class Env(env_humanoid_base.Env):
         if rm.flag['custom7'] and self.current_interaction:
             
             interaction_mesh = self.current_interaction
+            if not rm.flag['toggle_agent']:
+                agent = 0
+            else:
+                agent = 1
             if rm.flag['toggle_interaction'] or rm.flag['sim_model']:
 
                 # for i in range(self._num_agent):
-                for i in [0]:
-                    edge_index = interaction_mesh[i]
-                    errs = np.array(self.full_matrix_dist)
-                    sim_interaction_points = self._sim_interaction_points[i]
-                    pa = sim_interaction_points[edge_index[0]]
-                    pb =  sim_interaction_points[edge_index[1]]
-                    for k in range(len(pa)):
-                        if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
-                            weight = errs[edge_index[0][k],edge_index[1][k]]/np.sum(errs)
-                            color = [0, 0, 1, 10*weight]
-                            rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
+                edge_index = interaction_mesh[agent]
+                errs = np.array(self.full_matrix_dist)
+                sim_interaction_points = self._sim_interaction_points[agent]
+                pa = sim_interaction_points[edge_index[0]]
+                pb =  sim_interaction_points[edge_index[1]]
+                for k in range(len(pa)):
+                    if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
+                        weight = errs[edge_index[0][k],edge_index[1][k]]
+                        color = [0, 0, 1, 1000*weight]
+                        rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
             if (not rm.flag['toggle_interaction']) or rm.flag['kin_model']:
-                for i in [0]:
-                    edge_index = interaction_mesh[i]
-                    errs = np.array(self.full_matrix_dist)
-                    kin_interaction_points = self._kin_interaction_points[i]
-                    pa = kin_interaction_points[edge_index[0]]
-                    pb =  kin_interaction_points[edge_index[1]]
-                    for k in range(len(pa)):
-                        if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
-                            weight = errs[edge_index[0][k],edge_index[1][k]]/np.sum(errs)
-                            color = [0, 0, 1, 10*weight]
-                            rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
+                edge_index = interaction_mesh[agent]
+                errs = np.array(self.full_matrix_dist)
+                kin_interaction_points = self._kin_interaction_points[agent]
+                pa = kin_interaction_points[edge_index[0]]
+                pb =  kin_interaction_points[edge_index[1]]
+                for k in range(len(pa)):
+                    if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
+                        weight = errs[edge_index[0][k],edge_index[1][k]]
+                        color = [1, 0, 0, 1000*weight]
+                        rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
         if rm.flag['sim_model'] and self._include_object:
             rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
             colors = [rm.COLOR_AGENT]
@@ -1993,7 +1997,6 @@ class Env(env_humanoid_base.Env):
                 color=[0.6, 0.6, 0.6, 1.0])
 
 
-        super().render(rm)
 
 
 if __name__ == '__main__':

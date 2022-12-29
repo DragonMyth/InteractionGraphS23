@@ -37,7 +37,7 @@ flag['custom5'] = False
 flag['custom6'] = False
 flag['custom7'] = False
 flag['toggle_interaction']=False
-
+flag['toggle_agent'] = False
 toggle = {}
 toggle[b'`'] = 'all_scene'
 toggle[b'0'] = 'follow_cam'
@@ -66,6 +66,7 @@ toggle[b'%'] = 'custom5'
 toggle[b'^'] = 'custom6'
 toggle[b'&'] = 'custom7'
 toggle[b'~'] = 'toggle_interaction'
+toggle[b'/'] = 'toggle_agent'
 
 def get_flag(keyword):
     entity = flag[keyword]
