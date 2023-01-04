@@ -1,6 +1,6 @@
 run: DDPPO
 name: GreetingsIGOriginalExp01
-local_dir: /checkpoint/yzhang3027/exp
+local_dir: /checkpoint/yzhang3027/exp/siggraph_final
 checkpoint_freq: 100
 checkpoint_at_end: true
 reuse_actors: true

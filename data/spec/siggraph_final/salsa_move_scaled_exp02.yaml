@@ -1,6 +1,6 @@
 run: DDPPO
 name: SalsaMoveIGScaledExp02
-local_dir: /checkpoint/yzhang3027/exp
+local_dir: /checkpoint/yzhang3027/exp/siggraph_final
 checkpoint_freq: 100
 checkpoint_at_end: true
 reuse_actors: true
@@ -27,6 +27,7 @@ config:
     num_gpus_per_worker: 0
     remote_worker_envs: true
     framework: torch
+    callbacks: InitialStateDistributionCallback
     model:
         custom_model: task_agnostic_policy_type1
         custom_model_config:
