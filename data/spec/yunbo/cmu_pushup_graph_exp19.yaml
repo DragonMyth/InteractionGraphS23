@@ -221,15 +221,15 @@ config:
 
             reshape: 
                 -
-
-                    RightForeArm : [0.5,1,1]
-                    RightArm : [0.5,1,1]
-                    LeftForeArm : [0.5,1,1]
-                    LeftArm : [0.5,1,1]
-                    RightUpLeg: [1,1,0.5]
-                    RightLeg: [1,1,0.5]
-                    LeftUpLeg: [1,1,0.5]
-                    LeftLeg: [1,1,0.5]
+                    RightForeArm : [1,1,1]
+                    # RightForeArm : [0.5,1,1]
+                    # RightArm : [0.5,1,1]
+                    # LeftForeArm : [0.5,1,1]
+                    # LeftArm : [0.5,1,1]
+                    # RightUpLeg: [1,1,0.5]
+                    # RightLeg: [1,1,0.5]
+                    # LeftUpLeg: [1,1,0.5]
+                    # LeftLeg: [1,1,0.5]
                 - 
                     RightForeArm : [1,1,1]
             

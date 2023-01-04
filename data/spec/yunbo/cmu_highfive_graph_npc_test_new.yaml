@@ -113,7 +113,7 @@ config:
             body_type: facing_R6_h
         action:
             # 'absolute', 'relative'
-            type: "relative"
+            type: "absolute"
             range_min: -3.0
             range_max: 3.0
             range_min_pol: -3.0

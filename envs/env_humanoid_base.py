@@ -1203,38 +1203,38 @@ class Env(metaclass=ABCMeta):
 
         self._base_env.render(rm)
 
-        # if rm.flag['target_pose']:
-        #     for i in range(self._num_agent):
-        #         if self._target_pose[i] is None: continue
-        #         agent = self._kin_agent[i]
-        #         agent_state = agent.save_states()
-        #         agent.set_pose(self._target_pose[i])
-        #         rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
-        #         rm.bullet_render.render_model(self._pb_client, 
-        #                                       agent._body_id,
-        #                                       draw_link=True,
-        #                                       draw_link_info=False,
-        #                                       draw_joint=rm.flag['joint'],
-        #                                       draw_joint_geom=False, 
-        #                                       ee_indices=agent._char_info.end_effector_indices,
-        #                                       color=[colors[i][0], colors[i][1], colors[i][2], 0.5])
-        #         rm.gl.glPopAttrib()
-        #         agent.restore_states(agent_state)
+        if rm.flag['target_pose']:
+            for i in range(self._num_agent):
+                if self._target_pose[i] is None: continue
+                agent = self._kin_agent[i]
+                agent_state = agent.save_states()
+                agent.set_pose(self._target_pose[i])
+                rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
+                rm.bullet_render.render_model(self._pb_client, 
+                                              agent._body_id,
+                                              draw_link=True,
+                                              draw_link_info=False,
+                                              draw_joint=rm.flag['joint'],
+                                              draw_joint_geom=False, 
+                                              ee_indices=agent._char_info.end_effector_indices,
+                                              color=[colors[i][0], colors[i][1], colors[i][2], 0.5])
+                rm.gl.glPopAttrib()
+                agent.restore_states(agent_state)
 
-        # if rm.flag['kin_model']:
-        #     for i in range(self._num_agent):
-        #         agent = self._kin_agent[i]                
-        #         rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
-        #         rm.bullet_render.render_model(self._pb_client, 
-        #                                       agent._body_id,
-        #                                       draw_link=True,
-        #                                       draw_link_info=False,
-        #                                       draw_joint=rm.flag['joint'],
-        #                                       draw_joint_geom=False, 
-        #                                       ee_indices=agent._char_info.end_effector_indices,
-        #                                       color=[1-colors[i][0], 1-colors[i][1], 1-colors[i][2], 0.3])
-        #         if rm.flag['com_vel']:
-        #             p, Q, v, w = agent.get_root_state()
-        #             p, v = agent.get_com_and_com_vel()
-        #             rm.gl_render.render_arrow(p, p+v, D=0.01, color=[0.5, 0.5, 0.5, 1])
-        #         rm.gl.glPopAttrib()
+        if rm.flag['kin_model']:
+            for i in range(self._num_agent):
+                agent = self._kin_agent[i]                
+                rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
+                rm.bullet_render.render_model(self._pb_client, 
+                                              agent._body_id,
+                                              draw_link=True,
+                                              draw_link_info=False,
+                                              draw_joint=rm.flag['joint'],
+                                              draw_joint_geom=False, 
+                                              ee_indices=agent._char_info.end_effector_indices,
+                                              color=[1-colors[i][0], 1-colors[i][1], 1-colors[i][2], 0.3])
+                if rm.flag['com_vel']:
+                    p, Q, v, w = agent.get_root_state()
+                    p, v = agent.get_com_and_com_vel()
+                    rm.gl_render.render_arrow(p, p+v, D=0.01, color=[0.5, 0.5, 0.5, 1])
+                rm.gl.glPopAttrib()
