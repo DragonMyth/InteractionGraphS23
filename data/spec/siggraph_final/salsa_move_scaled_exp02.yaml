@@ -1,6 +1,6 @@
 run: DDPPO
-name: CMUMotionPriorSalsaMove03Exp01
-local_dir: /checkpoint/yzhang3027/exp
+name: SalsaMoveIGScaledExp02
+local_dir: /checkpoint/yzhang3027/exp/siggraph_final
 checkpoint_freq: 100
 checkpoint_at_end: true
 reuse_actors: true
@@ -27,6 +27,7 @@ config:
     num_gpus_per_worker: 0
     remote_worker_envs: true
     framework: torch
+    callbacks: InitialStateDistributionCallback
     model:
         custom_model: task_agnostic_policy_type1
         custom_model_config:
@@ -82,6 +83,8 @@ config:
                       name: normc
                       std: 0.01
             motor_decoder_learnable: true
+            # motor_decoder_load_weights: "/checkpoint/yzhang3027/exp/CMUMotionPriorExp07/DDPPO_HumanoidImitationInteractionGraph_eb17e_00000_0_2022-11-29_09-40-30/task_agnostic_policy_motor_decoder.pt"
+            motor_decoder_load_weights: "data/motion_priors/task_agnostic_policy_motor_decoder.pt"
 
 
     num_workers: 8
@@ -103,6 +106,8 @@ config:
             falldown_check:
                 method: height
                 height_min: 0.3
+        RSI:
+            dist_type: bin          
         state:
 
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
@@ -194,17 +199,24 @@ config:
                 -
                     RightForeArm : [1,1,1]
 
-                    # RightForeArm : [0.5,1,1]
-                    # RightArm : [0.5,1,1]
-                    # LeftForeArm : [0.5,1,1]
-                    # LeftArm : [0.5,1,1]
-                    # RightUpLeg: [1,1,0.5]
-                    # RightLeg: [1,1,0.5]
-                    # LeftUpLeg: [1,1,0.5]
-                    # LeftLeg: [1,1,0.5]
+                    # RightForeArm : [0.7,1,1]
+                    # RightArm : [0.7,1,1]
+                    # LeftForeArm : [0.7,1,1]
+                    # LeftArm : [0.7,1,1]
+                    # RightUpLeg: [1,1,0.7]
+                    # RightLeg: [1,1,0.7]
+                    # LeftUpLeg: [1,1,0.7]
+                    # LeftLeg: [1,1,0.7]
                 - 
-                    RightForeArm : [1,1,1]
-
+                    # RightForeArm : [1,1,1]
+                    RightForeArm : [0.8,1,1]
+                    RightArm : [0.8,1,1]
+                    LeftForeArm : [0.8,1,1]
+                    LeftArm : [0.8,1,1]
+                    RightUpLeg: [1,1,0.8]
+                    RightLeg: [1,1,0.8]
+                    LeftUpLeg: [1,1,0.8]
+                    LeftLeg: [1,1,0.8]
                     # RightForeArm : [1.3,1,1]
                     # RightArm : [1.3,1,1]
                     # LeftForeArm : [1.3,1,1]
