@@ -1,6 +1,6 @@
 run: DDPPO
 name: SalsaMoveIGScaledExp02
-local_dir: /checkpoint/yzhang3027/exp/siggraph_final
+local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
 reuse_actors: true
