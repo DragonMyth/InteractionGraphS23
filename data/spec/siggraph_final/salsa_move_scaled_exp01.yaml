@@ -27,6 +27,7 @@ config:
     num_gpus_per_worker: 0
     remote_worker_envs: true
     framework: torch
+    callbacks: InitialStateDistributionCallback
     model:
         custom_model: task_agnostic_policy_type1
         custom_model_config:
@@ -196,8 +197,6 @@ config:
 
             reshape: 
                 -
-                    RightForeArm : [1,1,1]
-
                     RightForeArm : [0.7,1,1]
                     RightArm : [0.7,1,1]
                     LeftForeArm : [0.7,1,1]
