@@ -86,4 +86,5 @@ data/screenshot
 data/render_data
 data/etc/pretrained_model/fencing/contrastive
 data/etc/episode_data
+bullet/*
 core

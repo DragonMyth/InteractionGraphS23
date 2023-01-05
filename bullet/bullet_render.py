@@ -7,8 +7,8 @@ from fairmotion.viz import gl_render
 from fairmotion.ops import conversions, quaternion
 from fairmotion.utils import constants
 import pywavefront
-from pywavefront import visualization
 import collada
+from pywavefront import visualization
 import renderer
 
 mesh_database = {}
@@ -372,6 +372,8 @@ def render_model(
     link_info_num_slice=32,
     lighting=True,
     ):
+
+
     if draw_link or draw_link_info:
         render_links(
             pb_client=pb_client,
