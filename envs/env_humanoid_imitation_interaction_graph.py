@@ -39,7 +39,11 @@ class Env(env_humanoid_base.Env):
         self._load_ref_interaction = self._config['interaction'].get('load_ref_interaction',None)
         self._interaction_type = self._config['interaction'].get('interaction_type',"interaction_mesh")
         self._interaction_joints = self._config['interaction'].get("interaction_joint_candidates",None)
+        self._kin_interaction_joints = self._config['interaction'].get("kin_interaction_joint_candidates",None)
+
         self._oppo_interaction_joints = self._config['interaction'].get("oppo_interaction_joint_candidates",None)
+        self._kin_oppo_interaction_joints = self._config['interaction'].get("kin_oppo_interaction_joint_candidates",None)
+
         self._object_interaction_joints = self._config['interaction'].get("object_interaction_joint_candidates",None)
         self._interaction_kernel = self._config['interaction'].get("interaction_weight_kernel",0)
         self._interaction_weight_type = self._config['interaction'].get("interaction_weight_type","kin")
@@ -57,12 +61,17 @@ class Env(env_humanoid_base.Env):
         self._interaction_joints_xform = []
         self._oppo_interaction_joints_xform = []
         self._object_interaction_joints_xform = []
+
+        self._kin_interaction_joints_xform = []
+        self._kin_oppo_interaction_joints_xform = []
+
         self._self_interaction_vert_cnt = 0
         self._oppo_interaction_vert_cnt = 0
         self._object_interaction_vert_cnt = 0
-        
+        self._full_matrix_dist = []
+        self._full_matrix_dist_raw = []
+
         self._interaction_filters = {}
-        
         if self._interaction_joints is not None:
             joints = []
             joint_idx_list = self._sim_agent[0]._char_info.joint_idx
@@ -79,6 +88,23 @@ class Env(env_humanoid_base.Env):
                 
             self._interaction_joints = joints
             self._self_interaction_vert_cnt = len(self._interaction_joints)
+        if self._kin_interaction_joints is not None:
+            joints = []
+            joint_idx_list = self._kin_agent[0]._char_info.joint_idx
+            for i in self._kin_interaction_joints:
+                if type(i) is dict:
+                    joint_name = list(i.keys())[0]
+                    translation = np.array(i[joint_name])
+                    xform = conversions.p2T(translation)
+                else:
+                    joint_name = i
+                    xform = conversions.p2T([0,0,0])
+                joints.append(joint_idx_list[joint_name])
+                self._kin_interaction_joints_xform.append(xform)
+            self._kin_interaction_joints = joints
+        else:
+            self._kin_interaction_joints = self._interaction_joints
+            self._kin_interaction_joints_xform = self._interaction_joints_xform
 
         if self._oppo_interaction_joints is not None:
             joints = []
@@ -95,11 +121,26 @@ class Env(env_humanoid_base.Env):
                 self._oppo_interaction_joints_xform.append(xform)
             self._oppo_interaction_joints = joints
             self._oppo_interaction_vert_cnt = len(self._oppo_interaction_joints)
-            # joints = []
-            # joint_idx_list = self._sim_agent[0]._char_info.joint_idx
-            # [joints.append(joint_idx_list[i]) for i in self._oppo_interaction_joints]
+ 
+        if self._kin_oppo_interaction_joints is not None:
+            joints = []
+            joint_idx_list = self._kin_agent[0]._char_info.joint_idx
+            for i in self._kin_oppo_interaction_joints:
+                if type(i) is dict:
+                    joint_name = list(i.keys())[0]
+                    translation = np.array(i[joint_name])
+                    xform = conversions.p2T(translation)
+                else:
+                    joint_name = i
+                    xform = conversions.p2T([0,0,0])
+                joints.append(joint_idx_list[joint_name])
+                self._kin_oppo_interaction_joints_xform.append(xform)
+            self._kin_oppo_interaction_joints = joints
 
-            # self._oppo_interaction_joints = joints   
+        else:
+            self._kin_oppo_interaction_joints = self._oppo_interaction_joints
+            self._kin_oppo_interaction_joints_xform = self._oppo_interaction_joints_xform
+
         if self._object_interaction_joints:
             ''' Include interaction vertices for object'''
             joints = []
@@ -223,6 +264,8 @@ class Env(env_humanoid_base.Env):
             self._ref_motion_file_names.append(ref_motion_file_names)
             self._sim_interaction_points.append( None)
             self._kin_interaction_points.append( None)
+            self._full_matrix_dist.append(None)
+            self._full_matrix_dist_raw.append(None)
         """Load Saved Refernce Interaction Connectivity"""
         if self._load_ref_interaction is not None:
             ref_interaction_path = os.path.join(project_dir, self._load_ref_interaction)
@@ -286,13 +329,16 @@ class Env(env_humanoid_base.Env):
                 frame = np.random.choice(dist.shape[0],p=dist)
                 time = frame/self._config['fps_con']
                 sample_reject = self.reject_sampled_time(time)
+        elif self._init_state_dist_type == 'first':
+            time = 0
 
             
         for i in range(self._num_agent):
             self._start_time[i] = time 
           
         self.episode_start_time = time
-        self.episode_expected_duration = ref_motion[0].length()-time  
+        horizon_duration = self._config['horizon']/self._config['fps_con']
+        self.episode_expected_duration = min(ref_motion[0].length()-time,horizon_duration) 
     def callback_reset_prev(self, info):
 
         ''' Choose a reference motion randomly whenever reset '''
@@ -494,27 +540,37 @@ class Env(env_humanoid_base.Env):
         interaction_points_name =  list(self_interaction_name + oppo_interaction_name)
         return interaction_points_name
     def get_all_interaction_points(self,agent_type,idx,*args):
+
         if agent_type == "sim":
             agent = self._sim_agent[idx]
             if len(self._sim_agent)>1:
                 other_agent = self._sim_agent[1-idx]
             if self._include_object:
                 obj_agent = self._obj_sim_agent[0]
+            interaction_points = self._interaction_joints
+            interaction_point_xforms = self._interaction_joints_xform
+            oppo_interaction_points = self._oppo_interaction_joints
+            oppo_interaction_point_xforms = self._oppo_interaction_joints_xform
         elif agent_type == "kin":
             agent = self._kin_agent[idx]
             if len(self._kin_agent)>1:
                 other_agent = self._kin_agent[1-idx]
             if self._include_object:
                 obj_agent = self._obj_kin_agent[0]
-        interaction_points = []
+            interaction_points = self._kin_interaction_joints
+            interaction_point_xforms = self._kin_interaction_joints_xform
+            oppo_interaction_points = self._kin_oppo_interaction_joints
+            oppo_interaction_point_xforms = self._kin_oppo_interaction_joints_xform
+
+        all_interaction_points = []
 
         if "self" in self._interaction_choices:
-            if self._interaction_joints is not None:
-                joint_candidate = np.array(self._interaction_joints)
+            if interaction_points is not None:
+                joint_candidate = np.array(interaction_points)
             else:
                 joint_candidate = np.array(agent._char_info.interaction_joint_candidate)
-            joint_state = np.array(agent.get_joint_cartesian_state_fast(np.array(joint_candidate),offsets=np.array(self._interaction_joints_xform),index_type=self._index_type))
-            interaction_points.append(joint_state)
+            joint_state = np.array(agent.get_joint_cartesian_state_fast(np.array(joint_candidate),offsets=np.array(interaction_point_xforms),index_type=self._index_type))
+            all_interaction_points.append(joint_state)
 
         if "ground" in self._interaction_choices:
             T = agent.get_facing_transform(self.get_ground_height(idx))
@@ -526,24 +582,24 @@ class Env(env_humanoid_base.Env):
             ground_point[0,:3] = p
             ground_point[0,3:6] = v_facing
 
-            interaction_points.append(ground_point)
+            all_interaction_points.append(ground_point)
 
         if "object" in self._interaction_choices:
             vert_candidate = np.array(self._object_interaction_joints)
 
             joint_state = np.array(obj_agent.get_joint_cartesian_state_fast(np.array(vert_candidate),offsets=np.array(self._object_interaction_joints_xform),index_type=self._index_type))
-            interaction_points.append(joint_state)   
+            all_interaction_points.append(joint_state)   
 
         ## This block MUST stay at the end to make sure the reward function works...
         if "other_agent" in self._interaction_choices:
-            if self._oppo_interaction_joints is not None:
-                joint_candidate = np.array(self._oppo_interaction_joints)
+            if oppo_interaction_points is not None:
+                joint_candidate = np.array(oppo_interaction_points)
             else:
                 joint_candidate = np.array(other_agent._char_info.interaction_joint_candidate)
-            joint_state = np.array(other_agent.get_joint_cartesian_state_fast(np.array(joint_candidate),offsets=np.array(self._oppo_interaction_joints_xform),index_type=self._index_type))
-            interaction_points.append(joint_state)
+            joint_state = np.array(other_agent.get_joint_cartesian_state_fast(np.array(joint_candidate),offsets=np.array(oppo_interaction_point_xforms),index_type=self._index_type))
+            all_interaction_points.append(joint_state)
 
-        return np.concatenate(interaction_points,axis=0)
+        return np.concatenate(all_interaction_points,axis=0)
 
     def compute_distance_weights(self,idx,edge_index=None,return_dist = False,weight_type='kin'):
         if weight_type == 'kin':
@@ -1538,18 +1594,19 @@ class Env(env_humanoid_base.Env):
             kin_pos_dist = np.linalg.norm(kin_pairwise_dist_full_mat,axis=2)
 
             diff = sim_diff_2_base_ratio - kin_diff_2_base_ratio
-            dist = np.linalg.norm(diff,axis=2)
-
-            dist[self_vert_cnt:,:-oppo_vert_cnt] = 0.5 * dist[self_vert_cnt:,:-oppo_vert_cnt]/(kin_pos_dist[self_vert_cnt:,:-oppo_vert_cnt]+1e-6) + 0.5* dist[self_vert_cnt:,:-oppo_vert_cnt]/(sim_pos_dist[self_vert_cnt:,:-oppo_vert_cnt]+1e-6)
-            dist[:-oppo_vert_cnt,self_vert_cnt:] = 0.5 * dist[:-oppo_vert_cnt,self_vert_cnt:]/(kin_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6) + 0.5* dist[:-oppo_vert_cnt,self_vert_cnt:]/(sim_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6)
+            dist_old = np.linalg.norm(diff,axis=2)
+            
+            dist = np.array(dist_old)
+            dist[self_vert_cnt:,:-oppo_vert_cnt] = 0.5 * dist_old[self_vert_cnt:,:-oppo_vert_cnt]/(kin_pos_dist[self_vert_cnt:,:-oppo_vert_cnt]+1e-6) + 0.5* dist_old[self_vert_cnt:,:-oppo_vert_cnt]/(sim_pos_dist[self_vert_cnt:,:-oppo_vert_cnt]+1e-6)
+            dist[:-oppo_vert_cnt,self_vert_cnt:] = 0.5 * dist_old[:-oppo_vert_cnt,self_vert_cnt:]/(kin_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6) + 0.5* dist_old[:-oppo_vert_cnt,self_vert_cnt:]/(sim_pos_dist[:-oppo_vert_cnt,self_vert_cnt:]+1e-6)
            
             ## Use this to plot the splitted reward and for analysis
-            self.full_matrix_dist_raw = np.array(dist*dist)
+            self._full_matrix_dist_raw[idx] = np.array(dist*dist)
 
             dist = dist * dist * weights_full_mat
 
             ## Use this to plot the splitted reward and for analysis
-            self.full_matrix_dist = np.array(dist)
+            self._full_matrix_dist[idx] = np.array(dist)
 
             error['weighted_ig_pos_base_relative'] = np.sum(dist)
 
@@ -1763,8 +1820,6 @@ class Env(env_humanoid_base.Env):
         return self._base_env.get_render_data(agent)
 
     def render(self, rm):
-        super().render(rm)
-
         if rm.flag['custom1']:
             for i in range(self._num_agent):
                 if rm.flag['sim_model']:
@@ -1792,6 +1847,9 @@ class Env(env_humanoid_base.Env):
                             constants.EYE_T, 0.4, color=[1, 0, 0, 1], slice1=16, slice2=16)
                         rm.gl.glPopMatrix()
                         # rm.gl_render.render_arrow(p, p+v, D=0.01, color=[0.5, 0.5, 0.5, 1])
+        super().render(rm)
+
+        
         if rm.flag['custom2']:
             for constraint_id in self._constraints:
                 if constraint_id is not None:
@@ -1908,32 +1966,34 @@ class Env(env_humanoid_base.Env):
         if rm.flag['custom7'] and self.current_interaction:
             
             interaction_mesh = self.current_interaction
+            if not rm.flag['toggle_agent']:
+                agent = 0
+            else:
+                agent = 1
             if rm.flag['toggle_interaction'] or rm.flag['sim_model']:
 
                 # for i in range(self._num_agent):
-                for i in [0]:
-                    edge_index = interaction_mesh[i]
-                    errs = np.array(self.full_matrix_dist)
-                    sim_interaction_points = self._sim_interaction_points[i]
-                    pa = sim_interaction_points[edge_index[0]]
-                    pb =  sim_interaction_points[edge_index[1]]
-                    for k in range(len(pa)):
-                        if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
-                            weight = errs[edge_index[0][k],edge_index[1][k]]/np.sum(errs)
-                            color = [0, 0, 1, 10*weight]
-                            rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
+                edge_index = interaction_mesh[agent]
+                errs = np.array(self._full_matrix_dist[agent])
+                sim_interaction_points = self._sim_interaction_points[agent]
+                pa = sim_interaction_points[edge_index[0]]
+                pb =  sim_interaction_points[edge_index[1]]
+                for k in range(len(pa)):
+                    if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
+                        weight = errs[edge_index[0][k],edge_index[1][k]]
+                        color = [0, 0, 1, 1000*weight]
+                        rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
             if (not rm.flag['toggle_interaction']) or rm.flag['kin_model']:
-                for i in [0]:
-                    edge_index = interaction_mesh[i]
-                    errs = np.array(self.full_matrix_dist)
-                    kin_interaction_points = self._kin_interaction_points[i]
-                    pa = kin_interaction_points[edge_index[0]]
-                    pb =  kin_interaction_points[edge_index[1]]
-                    for k in range(len(pa)):
-                        if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
-                            weight = errs[edge_index[0][k],edge_index[1][k]]/np.sum(errs)
-                            color = [0, 0, 1, 10*weight]
-                            rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
+                edge_index = interaction_mesh[agent]
+                errs = np.array(self._full_matrix_dist[agent])
+                kin_interaction_points = self._kin_interaction_points[agent]
+                pa = kin_interaction_points[edge_index[0]]
+                pb =  kin_interaction_points[edge_index[1]]
+                for k in range(len(pa)):
+                    if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
+                        weight = errs[edge_index[0][k],edge_index[1][k]]
+                        color = [1, 0, 0, 1000*weight]
+                        rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
         if rm.flag['sim_model'] and self._include_object:
             rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
             colors = [rm.COLOR_AGENT]
@@ -1992,8 +2052,7 @@ class Env(env_humanoid_base.Env):
                 link_info_line_width=2.0,
                 color=[0.6, 0.6, 0.6, 1.0])
 
-
-
+        
 
 if __name__ == '__main__':
 

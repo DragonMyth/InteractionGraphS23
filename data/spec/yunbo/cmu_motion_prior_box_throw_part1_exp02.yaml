@@ -1,5 +1,5 @@
 run: DDPPO
-name: CMUMotionPriorBoxThrowExp10
+name: CMUMotionPriorBoxThrowPart1Exp02
 local_dir: /checkpoint/yzhang3027/exp
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -110,11 +110,6 @@ config:
                 height_min: 0.3
         RSI:
             dist_type: bin 
-            reject:
-                - [2.1,3]
-                - [4.2,5.2]
-                - [6.9,7.9]
-                - [9.3,10.2]
         state:
 
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs","obj_body","ref_obj_abs"]
@@ -185,7 +180,7 @@ config:
                 -
                     data:
                         file:
-                            - data/motion/cmu/interactions/box_throw_small_box_part3_30fps.bvh
+                            - data/motion/cmu/interactions/box_throw_small_box_part1_30fps.bvh
         character:
             name:
                 - player1
@@ -206,11 +201,11 @@ config:
                 -
                     data:
                         file:
-                            - data/motion/cmu/interactions/box_throw_S1_part3_30fps.bvh
+                            - data/motion/cmu/interactions/box_throw_S1_part1_30fps.bvh
                 -
                     data:
                         file:
-                            - data/motion/cmu/interactions/box_throw_S2_part3_30fps.bvh
+                            - data/motion/cmu/interactions/box_throw_S2_part1_30fps.bvh
             physics:
                 - actuation: spd
                   self_collision: true
@@ -221,8 +216,16 @@ config:
                 -
                     RightForeArm : [1,1,1]
 
-                - 
-                    RightForeArm : [1,1,1]
+                -
+
+                    RightForeArm : [0.7,1,1]
+                    RightArm : [0.7,1,1]
+                    LeftForeArm : [0.7,1,1]
+                    LeftArm : [0.7,1,1]
+                    RightUpLeg: [1,1,0.7]
+                    RightLeg: [1,1,0.7]
+                    LeftUpLeg: [1,1,0.7]
+                    LeftLeg: [1,1,0.7]
             
             ref_motion_height_fix:
                 - 
@@ -230,6 +233,7 @@ config:
                 -
                     0
 
+            reshape_ref: False
             reshape_ref: False
             environment_file: 
                 - data/character/small_box_chair.urdf
@@ -250,7 +254,7 @@ config:
                 - Root_geom : [-0.15,  0.15,-0.15]
                 - Root_geom : [-0.15,  -0.15,0.15]
                 - Root_geom : [-0.15,  -0.15,-0.15]
-            
+
             oppo_interaction_joint_candidates:
                 - Hips
                 # - Spine

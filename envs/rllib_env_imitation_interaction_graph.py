@@ -300,8 +300,8 @@ class EnvRenderer(er.EnvRenderer):
         self.data['time'].append(self.get_elapsed_time())
         self.data['states'].append((self.env.format_state(s1),self.env.format_state(s2)))
         # self.get_custom_data()
-        for i in range(2):
-            self.collect_replay_data(i)
+        # for i in range(2):
+        #     self.collect_replay_data(i)
         
         return s2, rew, eoe, info
     def get_custom_data(self):

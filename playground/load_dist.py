@@ -1,21 +1,18 @@
 import pickle as pkl
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 import matplotlib
-
+import numpy as np
 matplotlib.use('Qt5Agg')
 
-# log_dir = '/checkpoint/yzhang3027/exp/CMUMotionPriorBoxThrowExp03/DDPPO_HumanoidImitationInteractionGraphTwo_bc436_00000_0_2022-12-12_23-49-56'
+# log_dir = '/home/yunbo/character_interaction/exp/CMUMotionPriorBoxThrowExp03/DDPPO_HumanoidImitationInteractionGraphTwo_bc436_00000_0_2022-12-12_23-49-56'
 
-# log_dir = '/checkpoint/yzhang3027/exp/CMUMotionPriorBoxThrowExp04/DDPPO_HumanoidImitationInteractionGraphTwo_bce10_00000_0_2022-12-12_23-49-57'
-# log_dir = '/home/yunbo/character_interaction/CMUMotionPriorBoxThrow_Exp05_to_Exp10/exp/CMUMotionPriorBoxThrowExp05/DDPPO_HumanoidImitationInteractionGraphTwo_c1090_00000_0_2022-12-22_11-42-22'
-# log_dir = "/home/yunbo/character_interaction/CMUMotionPriorBoxThrow_Exp05_to_Exp10/exp/CMUMotionPriorBoxThrowExp10/DDPPO_HumanoidImitationInteractionGraphTwo_368b7_00000_0_2022-12-22_12-21-27"
-log_dir = "/home/yunbo/character_interaction/CMUMotionPriorBoxThrow_Exp05_to_Exp10/exp/CMUMotionPriorBoxThrowExp07/DDPPO_HumanoidImitationInteractionGraphTwo_37214_00000_0_2022-12-22_12-21-28"
+# log_dir = '/home/yunbo/character_interaction/exp/CMUMotionPriorBoxThrowExp04/DDPPO_HumanoidImitationInteractionGraphTwo_bce10_00000_0_2022-12-12_23-49-57'
+log_dir = '/home/yunbo/character_interaction/exp/CMUMotionPriorBoxThrowExp10/DDPPO_HumanoidImitationInteractionGraphTwo_ed4b2_00000_0_2022-12-21_20-56-23'
 
-ranges = np.arange(10)+1
+ranges = np.arange(1)+1
 for i in ranges:
-    chpt = i*400
+    chpt = 170
     dist_name = 'init_dist_data_%05d.pkl'%(chpt)
 
     full_dir = os.path.join(log_dir,dist_name)

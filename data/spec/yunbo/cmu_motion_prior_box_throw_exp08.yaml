@@ -110,6 +110,12 @@ config:
                 height_min: 0.3
         RSI:
             dist_type: bin 
+            reject:
+                - [9.5,9.8]
+                - [11.3,11.7]
+                - [12.9, 13.2]
+                - [15.1, 15.5]
+                - [16.8, 17.3]
             
         state:
 

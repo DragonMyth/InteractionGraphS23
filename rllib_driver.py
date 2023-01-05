@@ -179,6 +179,7 @@ if __name__ == "__main__":
             raise NotImplementedError("Unknown Environment")
 
         # register_env(config['env'], lambda config: env_module.env_cls(config))
+        config['env_config']['horizon'] = config['horizon']
         config['env'] = env_module.env_cls
         '''
         Register custom model to use if it exists
@@ -240,7 +241,6 @@ if __name__ == "__main__":
 
         config_override = env_module.config_override(spec)
         config.update(config_override)
-
         def adjust_config(config, alg):
             rollout_fragment_length = config.get('rollout_fragment_length')
             num_workers = config.get('num_workers')

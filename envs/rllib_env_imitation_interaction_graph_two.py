@@ -304,17 +304,17 @@ class EnvRenderer(er.EnvRenderer):
             self.data[i]['states'].append((self.env.format_state(s1[agent_id])))
 
             ## Used to examine the split error of the reward
-            if hasattr(self.env.base_env, 'full_matrix_dist'):
+            if hasattr(self.env.base_env, '_full_matrix_dist'):
 
                 self_vert_cnt = self.env.base_env._self_interaction_vert_cnt
                 oppo_vert_cnt = self.env.base_env._oppo_interaction_vert_cnt
+                
 
+                self_err = np.sum(self.env.base_env._full_matrix_dist[i][:self_vert_cnt,:self_vert_cnt]) + np.sum(self.env.base_env._full_matrix_dist[i][-oppo_vert_cnt:,-oppo_vert_cnt:])
+                cross_err = np.sum(self.env.base_env._full_matrix_dist[i][self_vert_cnt:,:-oppo_vert_cnt]) + np.sum(self.env.base_env._full_matrix_dist[i][:-oppo_vert_cnt,self_vert_cnt:])
 
-                self_err = np.sum(self.env.base_env.full_matrix_dist[:self_vert_cnt,:self_vert_cnt]) + np.sum(self.env.base_env.full_matrix_dist[-oppo_vert_cnt:,-oppo_vert_cnt:])
-                cross_err = np.sum(self.env.base_env.full_matrix_dist[self_vert_cnt:,:-oppo_vert_cnt]) + np.sum(self.env.base_env.full_matrix_dist[:-oppo_vert_cnt,self_vert_cnt:])
-
-                self_err_raw = np.sum(self.env.base_env.full_matrix_dist_raw[:self_vert_cnt,:self_vert_cnt]) + np.sum(self.env.base_env.full_matrix_dist_raw[-oppo_vert_cnt:,-oppo_vert_cnt:])
-                cross_err_raw = np.sum(self.env.base_env.full_matrix_dist_raw[self_vert_cnt:,:-oppo_vert_cnt]) + np.sum(self.env.base_env.full_matrix_dist_raw[:-oppo_vert_cnt,self_vert_cnt:])
+                self_err_raw = np.sum(self.env.base_env._full_matrix_dist_raw[i][:self_vert_cnt,:self_vert_cnt]) + np.sum(self.env.base_env._full_matrix_dist_raw[i][-oppo_vert_cnt:,-oppo_vert_cnt:])
+                cross_err_raw = np.sum(self.env.base_env._full_matrix_dist_raw[i][self_vert_cnt:,:-oppo_vert_cnt]) + np.sum(self.env.base_env._full_matrix_dist_raw[i][:-oppo_vert_cnt,self_vert_cnt:])
 
                 self.data[i]['self_interaction_err'].append(self_err)
                 self.data[i]['cross_interaction_err'].append(cross_err)

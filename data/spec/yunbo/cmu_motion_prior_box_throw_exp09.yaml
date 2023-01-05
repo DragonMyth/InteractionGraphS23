@@ -110,6 +110,10 @@ config:
                 height_min: 0.3
         RSI:
             dist_type: bin 
+            reject:
+                - [2.3,2.9]
+                - [4.1,4.8]
+                - [6.5,7.2]
         state:
 
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs","obj_body","ref_obj_abs"]
