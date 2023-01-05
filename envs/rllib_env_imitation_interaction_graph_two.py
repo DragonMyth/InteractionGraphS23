@@ -304,7 +304,7 @@ class EnvRenderer(er.EnvRenderer):
             self.data[i]['states'].append((self.env.format_state(s1[agent_id])))
 
             ## Used to examine the split error of the reward
-            if hasattr(self.env.base_env, '_full_matrix_dist'):
+            if hasattr(self.env.base_env, '_full_matrix_dist') and self.env.base_env._full_matrix_dist[i] is not None:
 
                 self_vert_cnt = self.env.base_env._self_interaction_vert_cnt
                 oppo_vert_cnt = self.env.base_env._oppo_interaction_vert_cnt
