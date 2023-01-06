@@ -1,6 +1,6 @@
 run: DDPPO
-name: SalsaMoveIGScaledExp01
-local_dir: /checkpoint/jungdam/exp_yunbo/
+name: SalsaGraspIGScaledExp02
+local_dir: /checkpoint/yzhang3027/exp/siggraph_final
 checkpoint_freq: 100
 checkpoint_at_end: true
 reuse_actors: true
@@ -27,7 +27,6 @@ config:
     num_gpus_per_worker: 0
     remote_worker_envs: true
     framework: torch
-    callbacks: InitialStateDistributionCallback
     model:
         custom_model: task_agnostic_policy_type1
         custom_model_config:
@@ -83,8 +82,8 @@ config:
                       name: normc
                       std: 0.01
             motor_decoder_learnable: true
-            # motor_decoder_load_weights: "/checkpoint/yzhang3027/exp/CMUMotionPriorExp07/DDPPO_HumanoidImitationInteractionGraph_eb17e_00000_0_2022-11-29_09-40-30/task_agnostic_policy_motor_decoder.pt"
             motor_decoder_load_weights: "data/motion_priors/task_agnostic_policy_motor_decoder.pt"
+
 
 
     num_workers: 8
@@ -106,8 +105,6 @@ config:
             falldown_check:
                 method: height
                 height_min: 0.3
-        RSI:
-            dist_type: bin          
         state:
 
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
@@ -127,13 +124,14 @@ config:
                     name: total
                     op: mul
                     child_nodes:
+
                       - name: weighted_im_vel
                         op: leaf
                         weight: 1.0
                         kernel: 
                             type: gaussian
-                            scale: 0.5         
-                
+                            scale: 0.5               
+
                       - name: weighted_ig_pos_base_relative
                         op: leaf
                         weight: 1.0
@@ -184,11 +182,11 @@ config:
                 -
                     data:
                         file:
-                            - data/motion/cmu/interactions/salsa/move_03_03_male_30fps.bvh
+                            - data/motion/cmu/interactions/salsa/Hard_05_male_30fps_short.bvh
                 -
                     data:
                         file:
-                            - data/motion/cmu/interactions/salsa/move_03_03_female_30fps.bvh
+                            - data/motion/cmu/interactions/salsa/Hard_05_female_30fps_short.bvh
             physics:
                 - actuation: spd
                   self_collision: true
@@ -197,6 +195,8 @@ config:
 
             reshape: 
                 -
+                    RightForeArm : [1,1,1]
+                - 
                     RightForeArm : [0.7,1,1]
                     RightArm : [0.7,1,1]
                     LeftForeArm : [0.7,1,1]
@@ -205,23 +205,12 @@ config:
                     RightLeg: [1,1,0.7]
                     LeftUpLeg: [1,1,0.7]
                     LeftLeg: [1,1,0.7]
-                - 
-                    RightForeArm : [1,1,1]
-
-                    # RightForeArm : [1.3,1,1]
-                    # RightArm : [1.3,1,1]
-                    # LeftForeArm : [1.3,1,1]
-                    # LeftArm : [1.3,1,1]
-                    # RightUpLeg: [1,1,1.3]
-                    # RightLeg: [1,1,1.3]
-                    # LeftUpLeg: [1,1,1.3]
-                    # LeftLeg: [1,1,1.3]
 
             ref_motion_height_fix:
                 - 
-                    -0.1
+                    -0.38
                 -
-                    -0.1
+                    0
 
             reshape_ref: False
         interaction:
@@ -229,9 +218,9 @@ config:
             prune_edges: False
             interaction_type: interaction_mesh
             interaction_choices: ["self","other_agent"]
-            index_type: link # could be link or joint
+            index_type: link # could be link or joint 
+            
             # interaction_choices: ["self","ground"]
-            interaction_weight_type: kin
             interaction_weight_kernel: 10
 
             oppo_interaction_joint_candidates:
@@ -281,3 +270,53 @@ config:
                 - Head
             # load_ref_interaction : data/interaction/jumping_jack/interaction.pkl
             load_ref_interaction : null
+            constraints:
+                - 
+                    start_time: 2
+                    duration: 13.4
+                    parent_agent: 0
+                    parent_link: LeftHand
+                    child_agent: 1
+                    child_link: RightHand
+                - 
+                    start_time: 16.6
+                    duration: 8.6
+                    parent_agent: 0
+                    parent_link: LeftHand
+                    child_agent: 1
+                    child_link: LeftHand
+                - 
+                    start_time: 26.1
+                    duration: 1.7
+                    parent_agent: 0
+                    parent_link: LeftHand
+                    child_agent: 1
+                    child_link: RightHand
+                - 
+                    start_time: 2.5
+                    duration: 11
+                    parent_agent: 0
+                    parent_link: RightHand
+                    child_agent: 1
+                    child_link: LeftHand
+                - 
+                    start_time: 15.5
+                    duration: 1.7
+                    parent_agent: 0
+                    parent_link: RightHand
+                    child_agent: 1
+                    child_link: RightHand
+                - 
+                    start_time: 18.5
+                    duration: 4
+                    parent_agent: 0
+                    parent_link: RightHand
+                    child_agent: 1
+                    child_link: RightHand
+                - 
+                    start_time: 27.6
+                    duration: 2.4
+                    parent_agent: 0
+                    parent_link: RightHand
+                    child_agent: 1
+                    child_link: RightHand
