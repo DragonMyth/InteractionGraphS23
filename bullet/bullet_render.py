@@ -371,6 +371,8 @@ def render_model(
     link_info_num_slice=32,
     lighting=True,
     ):
+
+
     if draw_link or draw_link_info:
         render_links(
             pb_client=pb_client,
