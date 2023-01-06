@@ -1,10 +1,6 @@
 run: DDPPO
 name: CMUHighFiveNpcSingleExp02
-<<<<<<< HEAD
 local_dir: /checkpoint/jungdam/exp_yunbo/
-=======
-local_dir: /checkpoint/yzhang3027/exp
->>>>>>> 58021268f12a664d03fe0665b42dbd0fecd129ea
 checkpoint_freq: 100
 checkpoint_at_end: true
 reuse_actors: true
