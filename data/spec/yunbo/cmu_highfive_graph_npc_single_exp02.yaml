@@ -1,5 +1,5 @@
 run: DDPPO
-name: CMUHighFiveNpcSingleExp01
+name: CMUHighFiveNpcSingleExp02
 local_dir: /checkpoint/yzhang3027/exp
 checkpoint_freq: 100
 checkpoint_at_end: true
