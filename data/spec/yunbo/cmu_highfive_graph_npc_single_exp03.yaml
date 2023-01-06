@@ -1,10 +1,6 @@
 run: DDPPO
-name: CMUHighFiveNpcSingleExp02
-<<<<<<< HEAD
+name: CMUHighFiveNpcSingleExp03
 local_dir: /checkpoint/jungdam/exp_yunbo/
-=======
-local_dir: /checkpoint/yzhang3027/exp
->>>>>>> 58021268f12a664d03fe0665b42dbd0fecd129ea
 checkpoint_freq: 100
 checkpoint_at_end: true
 reuse_actors: true
@@ -36,7 +32,7 @@ config:
         custom_model: task_agnostic_policy_type1
         custom_model_config:
             log_std_type: constant
-            sample_std: 0.1
+            sample_std: 0.2
             task_encoder_type: "mlp"
             task_encoder_inputs:
                 - body
