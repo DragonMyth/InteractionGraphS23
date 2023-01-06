@@ -7,9 +7,7 @@ from fairmotion.viz import gl_render
 from fairmotion.ops import conversions, quaternion
 from fairmotion.utils import constants
 import pywavefront
-from pywavefront import visualization
 import collada
-import renderer
 
 mesh_database = {}
 
@@ -90,7 +88,8 @@ def render_geom_bounding_box(geom_type, geom_size, color=[0, 0, 0, 1], T=constan
 
 # def render_geom(geom_type, geom_size, color=[0.5, 0.5, 0.5, 1.0], T=constants.EYE_T):
 def render_geom(data_visual, color=None, T=None):
-
+    from pywavefront import visualization
+    import renderer
     type = data_visual[2]
     param = data_visual[3]
     if T is None:
