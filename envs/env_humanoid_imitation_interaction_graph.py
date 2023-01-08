@@ -285,10 +285,10 @@ class Env(env_humanoid_base.Env):
         self._base_sim_ig = []
         self._base_kin_ig = []
         for idx in range(self._num_agent):
-            sim_ig = self.compute_interaction_mesh(self._sim_interaction_points[idx])
+            sim_ig = self.compute_interaction_mesh(self._sim_interaction_points[idx],T = self._sim_agent[idx].get_facing_transform(self.get_ground_height(idx)))
             self._base_sim_ig.append(sim_ig)
 
-            kin_ig = self.compute_interaction_mesh(self._kin_interaction_points[idx])
+            kin_ig = self.compute_interaction_mesh(self._kin_interaction_points[idx],T = self._kin_agent[idx].get_facing_transform(self.get_ground_height(idx)))
             self._base_kin_ig.append(kin_ig)
 
         ''' Should call reset after all setups are done '''
@@ -389,6 +389,7 @@ class Env(env_humanoid_base.Env):
             for i in range(self._num_obj):
                 self._obj_kin_agent[i].set_pose(
                     self._obj_init_poses[i], self._obj_init_vels[i])       
+        
         for i in range(self._num_agent):
             """Recompute cartesian states of all interaction points"""
             self._sim_interaction_points[i] = self.get_all_interaction_points("sim",i)
@@ -1157,7 +1158,6 @@ class Env(env_humanoid_base.Env):
         data = {}
 
         data['sim_root_pQvw'] = self._sim_agent[idx].get_root_state()
-        # data['sim_interaction_graph'] = self.compute_interaction_mesh_lower_triangle(self._sim_agent[idx])
 
         data['sim_link_pQvw'] = self._sim_agent[idx].get_link_states()
         data['sim_joint_pv'] = self._sim_agent[idx].get_joint_states()
@@ -1165,7 +1165,6 @@ class Env(env_humanoid_base.Env):
         data['sim_com'], data['sim_com_vel'] = self._sim_agent[idx].get_com_and_com_vel()
         
         data['kin_root_pQvw'] = self._kin_agent[idx].get_root_state()
-        # data['kin_interaction_graph'] = self.compute_interaction_mesh_lower_triangle(self._kin_agent[idx])
 
         data['kin_link_pQvw'] = self._kin_agent[idx].get_link_states()
         data['kin_joint_pv'] = self._kin_agent[idx].get_joint_states()
@@ -1183,8 +1182,8 @@ class Env(env_humanoid_base.Env):
         else:
             edge_indices = np.array([[0],[0]])
         data['edge_indices'] = edge_indices.copy()
-        data['sim_sim_interaction_graph'] = self.compute_interaction_mesh(self._sim_interaction_points[idx],edge_indices)
-        data['kin_kin_interaction_graph'] = self.compute_interaction_mesh(self._kin_interaction_points[idx],edge_indices)
+        data['sim_sim_interaction_graph'] = self.compute_interaction_mesh(self._sim_interaction_points[idx],edge_indices,T = self._sim_agent[idx].get_facing_transform(self.get_ground_height(idx)))
+        data['kin_kin_interaction_graph'] = self.compute_interaction_mesh(self._kin_interaction_points[idx],edge_indices,T = self._kin_agent[idx].get_facing_transform(self.get_ground_height(idx)))
         data['kin_interaction_dist_weight'] = self.compute_distance_weights(idx,edge_indices,weight_type=self._interaction_weight_type)
         
         if self._include_object:
