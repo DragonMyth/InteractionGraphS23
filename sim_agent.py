@@ -24,7 +24,13 @@ def project_rotation_1D(R, axis):
     Q, angle = quaternion.Q_closest(
         conversions.R2Q(R), [0.0, 0.0, 0.0, 1.0], axis,
     )
-    return angle
+    return 0
+
+def project_angular_vel_1D(w, axis):
+    """
+    Project a 3D angular velocity to 1d angular velocity.
+    """
+    return np.zeros_like(w)
 
 class SimAgent(object):
     '''
@@ -62,9 +68,11 @@ class SimAgent(object):
                  reshape_config = {},
                  name="agent",
                  actuation="none",
+                 actuation_raw_input=False,
                  ):
         self._name = name
         self._actuation = SimAgent.Actuation.from_string(actuation)
+        self._actuation_raw_input = actuation_raw_input
         self._pb_client = pybullet_client
         self._char_info = char_info
         self._self_collision = self_collision
@@ -530,7 +538,8 @@ class SimAgent(object):
         '''
         Velocity should be represented w.r.t. local frame
         '''
-
+        if pose is None:
+            return
         if self._char_info.bvh_map[self._char_info.ROOT]:
             # Root joint
             T = pose.get_transform(
@@ -773,6 +782,7 @@ class SimAgent(object):
         pose = action_dict.get("pose")
         vel = action_dict.get("vel")
         torque = action_dict.get("torque")
+        raw = action_dict.get("raw")
         base_residual_linear_force = action_dict.get("base_residual_linear_force")
         base_residual_angular_force = action_dict.get("base_residual_angular_force")
         base_residual_linear_force_frame = action_dict.get("base_residual_linear_force_frame")
@@ -850,21 +860,26 @@ class SimAgent(object):
                 If all actuable joints are spherical (we do not have to check joint types), 
                 so we can take a shortcut
                 '''
-                Ts, ws = [], []
-                for idx, j in enumerate(self._act_joint_indices):
-                    if pose is None:
-                        T = constants.EYE_T
-                    else:
-                        T = pose.get_transform(self._char_info.bvh_map[j], local=True)
-                    if vel is None:
-                        w = constants.ZERO_P
-                    else: 
-                        w = vel.get_angular(self._char_info.bvh_map[j], local=True)
-                    Ts.append(T)
-                    ws.append(w)
-                Qs, ps = conversions.T2Qp(np.array(Ts))
-                self._act_target_positions = Qs
-                self._act_target_velocities = ws
+                if self._actuation_raw_input:
+                    for idx, j in enumerate(self._act_joint_indices):
+                        Ts.append(conversions.A2T(raw[3*j:3*j+3]))
+                        ws.append(np.zeros(3))
+                else:
+                    Ts, ws = [], []
+                    for idx, j in enumerate(self._act_joint_indices):
+                        if pose is None:
+                            T = constants.EYE_T
+                        else:
+                            T = pose.get_transform(self._char_info.bvh_map[j], local=True)
+                        if vel is None:
+                            w = constants.ZERO_P
+                        else: 
+                            w = vel.get_angular(self._char_info.bvh_map[j], local=True)
+                        Ts.append(T)
+                        ws.append(w)
+                    Qs, ps = conversions.T2Qp(np.array(Ts))
+                    self._act_target_positions = Qs
+                    self._act_target_velocities = ws
                 # for idx, j in enumerate(self._act_joint_indices):
                 #     self._act_target_positions[idx] = Qs[idx]
                 #     self._act_target_velocities[idx] = ws[idx]
@@ -873,38 +888,55 @@ class SimAgent(object):
                 Otherwise, we need to check the type of the joint and
                 do appropriate operations according to the type
                 '''
-                for idx, j in enumerate(self._act_joint_indices):
-                    joint_type = self.get_joint_type(j)
-                    if self._char_info.bvh_map[j] == None:
-                        ''' Use the initial pose if no mapping exists '''
-                        target_pos = self._joint_pos_init[j]
-                        target_vel = self._joint_vel_init[j]
-                    else:
-                        ''' 
-                        Convert target pose value so that it fits to each joint type
-                        For the hinge joint, we find the geodesic closest value given the axis
-                        '''
-                        if pose is None:
-                            T = constants.EYE_T
-                        else:
-                            T = pose.get_transform(self._char_info.bvh_map[j], local=True)              
-                        if vel is None:
-                            w = constants.ZERO_P
-                        else:
-                            w = vel.get_angular(self._char_info.bvh_map[j], local=True)
+                if self._actuation_raw_input:
+                    cnt = 0
+                    for idx, j in enumerate(self._act_joint_indices):
+                        joint_type = self.get_joint_type(j)
                         if joint_type == self._pb_client.JOINT_REVOLUTE:
-                            axis = self.get_joint_axis(j)
-                            target_pos = np.array([math.project_rotation_1D(conversions.T2R(T), axis)])
-                            target_vel = np.array([math.project_angular_vel_1D(w, axis)])
+                            target_pos = np.array([raw[cnt:cnt+1]])
+                            target_vel = 0
+                            cnt += 1
                         elif joint_type == self._pb_client.JOINT_SPHERICAL:
-                            Q, p = conversions.T2Qp(T)
-                            # Q = quaternion.Q_op(Q, op=["normalize", "halfspace"])
-                            target_pos = Q
-                            target_vel = w
+                            target_pos = conversions.A2Q(raw[cnt:cnt+3])
+                            target_vel = np.zeros(3)
+                            cnt += 3
                         else:
                             raise NotImplementedError
-                    self._act_target_positions[idx] = target_pos
-                    self._act_target_velocities[idx] = target_vel
+                        self._act_target_positions[idx] = target_pos
+                        self._act_target_velocities[idx] = target_vel
+                else:
+                    for idx, j in enumerate(self._act_joint_indices):
+                        joint_type = self.get_joint_type(j)
+                        if self._char_info.bvh_map[j] == None:
+                            ''' Use the initial pose if no mapping exists '''
+                            target_pos = self._joint_pos_init[j]
+                            target_vel = self._joint_vel_init[j]
+                        else:
+                            ''' 
+                            Convert target pose value so that it fits to each joint type
+                            For the hinge joint, we find the geodesic closest value given the axis
+                            '''
+                            if pose is None:
+                                T = constants.EYE_T
+                            else:
+                                T = pose.get_transform(self._char_info.bvh_map[j], local=True)              
+                            if vel is None:
+                                w = constants.ZERO_P
+                            else:
+                                w = vel.get_angular(self._char_info.bvh_map[j], local=True)
+                            if joint_type == self._pb_client.JOINT_REVOLUTE:
+                                axis = self.get_joint_axis(j)
+                                target_pos = np.array([math.project_rotation_1D(conversions.T2R(T), axis)])
+                                target_vel = np.array([math.project_angular_vel_1D(w, axis)])
+                            elif joint_type == self._pb_client.JOINT_SPHERICAL:
+                                Q, p = conversions.T2Qp(T)
+                                # Q = quaternion.Q_op(Q, op=["normalize", "halfspace"])
+                                target_pos = Q
+                                target_vel = w
+                            else:
+                                raise NotImplementedError
+                        self._act_target_positions[idx] = target_pos
+                        self._act_target_velocities[idx] = target_vel
         else:
             if self._act_all_spherical_joints:
                 forces = torque.reshape((-1, 3))
@@ -1061,8 +1093,8 @@ class SimAgent(object):
                     w = vel.get_angular(self._char_info.bvh_map[j])
                 if joint_type == self._pb_client.JOINT_REVOLUTE:
                     axis = self.get_joint_axis(j)
-                    target_pos = np.array([math.project_rotation_1D(conversions.T2R(T), axis)])
-                    target_vel = np.array([math.project_angular_vel_1D(w, axis)])
+                    target_pos = np.array([project_rotation_1D(conversions.T2R(T), axis)])
+                    target_vel = np.array([project_angular_vel_1D(w, axis)])
                 elif joint_type == self._pb_client.JOINT_SPHERICAL:
                     Q, p = conversions.T2Qp(T)
                     Q = quaternion.Q_op(Q, op=["normalize", "halfspace"])
