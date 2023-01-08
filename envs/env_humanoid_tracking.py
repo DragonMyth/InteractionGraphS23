@@ -205,6 +205,7 @@ class Env(object):
                     ref_height_fix=ref_motion_height_fix[i],
                     self_collision=physics_param[i]['self_collision'],
                     actuation=physics_param[i]['actuation'],
+                    actuation_raw_input=physics_param[i].get('actuation_raw_input', False),
                     kinematic_only=False,
                     reshape_config=character_reshapes[i],
                     verbose=self._verbose))

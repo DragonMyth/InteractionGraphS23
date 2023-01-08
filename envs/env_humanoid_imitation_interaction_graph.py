@@ -761,7 +761,6 @@ class Env(env_humanoid_base.Env):
 
         for i in range(self._num_agent):
             ''' Set the state of simulated agent by using the state of reference motion '''
-
             init_pose = self._base_motion[i].get_pose_by_time(0)
             init_vel = self._base_motion[i].get_velocity_by_time(0)
             ''' Add noise to the state if necessary '''

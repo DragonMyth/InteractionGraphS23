@@ -423,7 +423,6 @@ class Env(metaclass=ABCMeta):
         '''
         We assume that the given action is already denormalized
         '''
-
         agent = self._sim_agent[idx]
         char_info = agent._char_info
 
@@ -634,13 +633,18 @@ class Env(metaclass=ABCMeta):
             if self._sim_agent[i]._actuation==sim_agent.SimAgent.Actuation.NONE:
                 pass
             elif self._sim_agent[i]._actuation==sim_agent.SimAgent.Actuation.TQ:
-                act_space = self._action_space[i]['torque']                
-                action_dict["torque"] = act_space.norm_to_real(actions[i][cnt:])
+                act_space = self._action_space[i]['torque']
+                act_denom = act_space.norm_to_real(actions[i][cnt:])            
+                action_dict["torque"] = act_denom
             else:
                 act_space = self._action_space[i]['target_pose']
                 act_denom = act_space.norm_to_real(actions[i][cnt:])
-                action_dict["pose"] = self.compute_target_pose(i, act_denom)
-                self._target_pose[i] = action_dict["pose"]
+                if self._sim_agent[i]._actuation_raw_input:
+                    action_dict["raw"] = act_denom
+                    self._target_pose[i] = act_denom
+                else:
+                    action_dict["pose"] = self.compute_target_pose(i, act_denom)
+                    self._target_pose[i] = action_dict["pose"]
 
             action_dict_list.append(action_dict)
 
