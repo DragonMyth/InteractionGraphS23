@@ -604,7 +604,7 @@
     <dynamics damping="0.7" friction="0.0"/>
   </joint>
   <joint name="right_e0" type="revolute">
-    <origin rpy="1.57079632679 1.57079632679 1.57079632679" xyz="0.102 0 0"/>
+    <origin rpy="1.57079632679 -1.57079632679 1.57079632679" xyz="0.102 0 0"/>
     <axis xyz="0 0 1"/>
     <parent link="right_lower_shoulder"/>
     <child link="right_upper_elbow"/>
@@ -612,7 +612,7 @@
     <dynamics damping="0.7" friction="0.0"/>
   </joint>
   <joint name="right_e0_fixed" type="fixed">
-    <origin rpy="1.57079632679 1.57079632679 1.57079632679" xyz="0.107 0 0"/>
+    <origin rpy="1.57079632679 -1.57079632679 1.57079632679" xyz="0.107 0 0"/>
     <axis xyz="0 0 1"/>
     <parent link="right_lower_shoulder"/>
     <child link="right_upper_elbow_visual"/>
@@ -1033,7 +1033,7 @@
     <dynamics damping="0.7" friction="0.0"/>
   </joint>
   <joint name="left_e0" type="revolute">
-    <origin rpy="1.57079632679 -1.57079632679 1.57079632679" xyz="0.102 0 0"/>
+    <origin rpy="1.57079632679 1.57079632679 1.57079632679" xyz="0.102 0 0"/>
     <axis xyz="0 0 1"/>
     <parent link="left_lower_shoulder"/>
     <child link="left_upper_elbow"/>
@@ -1041,7 +1041,7 @@
     <dynamics damping="0.7" friction="0.0"/>
   </joint>
   <joint name="left_e0_fixed" type="fixed">
-    <origin rpy="1.57079632679 -1.57079632679 1.57079632679" xyz="0.107 0 0"/>
+    <origin rpy="1.57079632679 1.57079632679 1.57079632679" xyz="0.107 0 0"/>
     <axis xyz="0 0 1"/>
     <parent link="left_lower_shoulder"/>
     <child link="left_upper_elbow_visual"/>
