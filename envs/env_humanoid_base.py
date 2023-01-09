@@ -1241,4 +1241,10 @@ class Env(metaclass=ABCMeta):
                     p, Q, v, w = agent.get_root_state()
                     p, v = agent.get_com_and_com_vel()
                     rm.gl_render.render_arrow(p, p+v, D=0.01, color=[0.5, 0.5, 0.5, 1])
+                if rm.flag['facing_frame']:
+                    rm.gl_render.render_transform(
+                        agent.get_facing_transform(self.get_ground_height(i)),
+                        scale=0.5,
+                        use_arrow=True)
                 rm.gl.glPopAttrib()
+                

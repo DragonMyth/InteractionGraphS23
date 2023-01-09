@@ -23,7 +23,7 @@ The facing direction of the character w.r.t. its root joint.
 The facing direction in the world frame can be computed by dot(R_root, v_face), 
 where R_root is the orientation of the root.
 '''
-v_face = np.array([0.0, -1.0, 0.0])
+v_face = np.array([1.0, 0.0, 0.0])
 ''' 
 The up direction of the world frame, when the character holds its defalult posture (e.g. t-pose).
 This information is useful/necessary when comparing a relationship between the character and its environment.
