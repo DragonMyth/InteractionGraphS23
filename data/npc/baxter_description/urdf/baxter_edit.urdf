@@ -588,7 +588,7 @@
     <child link="right_arm_mount"/>
   </joint>
   <joint name="right_s0" type="revolute">
-    <origin rpy="0 0 0" xyz="0.055695 0 0.011038"/>
+    <origin rpy="0 0 -0.5" xyz="0.055695 0 0.011038"/>
     <axis xyz="0 0 1"/>
     <parent link="right_arm_mount"/>
     <child link="right_upper_shoulder"/>
@@ -1017,7 +1017,7 @@
     <child link="left_arm_mount"/>
   </joint>
   <joint name="left_s0" type="revolute">
-    <origin rpy="0 0 0" xyz="0.055695 0 0.011038"/>
+    <origin rpy="0 0 0.5" xyz="0.055695 0 0.011038"/>
     <axis xyz="0 0 1"/>
     <parent link="left_arm_mount"/>
     <child link="left_upper_shoulder"/>
