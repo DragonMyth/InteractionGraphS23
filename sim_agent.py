@@ -107,7 +107,7 @@ class SimAgent(object):
                 useFixedBase=not self._mobile,
                 flags=char_create_flags)
             self._pb_client.resetBasePositionAndOrientation(
-                self._body_id, root_pos, [0, 0, 0, 1])
+                self._body_id, root_pos, root_ori)
         except p.error as e:
             raise p.error("Cannot load robot model: " + str(e))
         

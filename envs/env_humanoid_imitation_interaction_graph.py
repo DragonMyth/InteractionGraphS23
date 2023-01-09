@@ -1846,8 +1846,10 @@ class Env(env_humanoid_base.Env):
                         rm.gl.glPopMatrix()
                         # rm.gl_render.render_arrow(p, p+v, D=0.01, color=[0.5, 0.5, 0.5, 1])
         super().render(rm)
-
-        
+        rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
+        rm.gl.glEnable(rm.gl.GL_BLEND)
+        rm.gl_render.render_transform(self._kin_agent[0].get_facing_transform(self.get_ground_height(0)), scale=0.5, use_arrow=True)
+        rm.gl.glPopAttrib()  
         if rm.flag['custom2']:
             for constraint_id in self._constraints:
                 if constraint_id is not None:

@@ -9,8 +9,8 @@ Mobile means the root joint is moving in the world space
 The initial posisition orientation of the root joint are set by root_pos and root_ori, respectively.
 '''
 mobile = False
-root_pos = np.array([0, 0, 0.95])
-root_ori = conversions.Ax2R(np.pi)
+root_pos = np.array([1.5, 0, 0.95])
+root_ori = conversions.Ax2R(0)
 
 ''' 
 The up direction of the character w.r.t. its root joint.
