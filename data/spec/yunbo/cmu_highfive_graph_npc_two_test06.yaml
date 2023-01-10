@@ -1,5 +1,5 @@
 run: DDPPO
-name: CMUHighFiveNpcTwoTest05
+name: CMUHighFiveNpcTwoTest06
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
