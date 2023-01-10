@@ -1,13 +1,13 @@
 run: DDPPO
-name: CMUHighFiveNpcTwoTest06
-local_dir: /checkpoint/jungdam/exp_yunbo/
+name: CMUNpcMotionPriorExp01
+local_dir: /checkpoint/jungdam/exp_yunbo/npc/
 checkpoint_freq: 100
 checkpoint_at_end: true
 reuse_actors: true
 stop: 
     time_total_s: 720000
 config:
-    env: HumanoidImitationInteractionGraphTwo
+    env: HumanoidImitationInteractionGraph
     log_level: WARN
     gamma: 0.98
     lambda: 0.95
@@ -106,9 +106,11 @@ config:
                 method: height
                 height_min: 0.3
         RSI:
-            dist_type: first
+            dist_type: uniform
         state:
-            choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
+            choices: ["body","ref_motion_abs"]
+
+            # choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
             # choices: ["sim_interaction_graph_state","ref_interaction_graph_state"]
 
             body_type: facing_R6_h
@@ -142,8 +144,7 @@ config:
 
             fn_map:
                 - default
-                - default
-   
+        
         early_term:
             # 'sim_div', 'sim_window', task_end', 'falldown', 'low_reward'
             choices:
@@ -154,68 +155,52 @@ config:
 
         character:
             name:
-                - player1
-                - player2
+                - baxter
             char_info_module:
                 - char_info/baxter_char_info.py
-                - char_info/baxter_char_info_oppo.py
             sim_char_file:
-                - data/npc/baxter_description/urdf/baxter_edit.urdf
                 - data/npc/baxter_description/urdf/baxter_edit.urdf
             kin_char_info_module:
                 - char_info/cmu_char_info.py
-                - char_info/cmu_char_info.py
             kin_char_file:
                 - data/character/cmu_s1_box.urdf 
-                - data/character/cmu_s2_box.urdf 
-
             # char_info_module:
             #     - char_info/cmu_char_info.py
             # sim_char_file:
             #     - data/character/cmu_s1_box.urdf
             ref_motion_scale:
                 - 1.0
-                - 1.0
-
             base_motion_file:
                 - data/motion/cmu/cmu_s1_hierarchy.bvh
-                - data/motion/cmu/cmu_s2_hierarchy.bvh
-
             ref_motion_db:
                 -
                     data:
                         file:
+                            - data/motion/cmu/interactions/box_throw_S1_30fps.bvh
+                            # - data/motion/cmu/interactions/big_box_pass001_S1_30fps.bvh
                             - data/motion/cmu/interactions/High_five_S1_30fps.bvh
-            
-                -
-                    data:
-                        file:
-                            - data/motion/cmu/interactions/High_five_S2_30fps.bvh 
+                            - data/motion/cmu/interactions/greeting002_S1_30fps.bvh
+                            # - data/motion/cmu/interactions/salsa/Hard_05_male_30fps.bvh
+                            # - data/motion/cmu/interactions/salsa/move_03_03_male_30fps.bvh
+                            - data/motion/cmu/interactions/box_throw_S2_30fps.bvh
+                            - data/motion/cmu/interactions/High_five_S2_30fps.bvh
+                            - data/motion/cmu/interactions/greeting002_S2_30fps.bvh
+      
             physics:
                 - 
                     actuation: cp
                     actuation_raw_input: true
                     self_collision: false
-                - 
-                    actuation: cp
-                    actuation_raw_input: true
-                    self_collision: false   
             ref_motion_height_fix:
                 - 
                     0
-                - 
-                    0
-
-            reshape:
-                - null
-                - null
             reshape_ref: False
 
         interaction:
             interaction_enabled: True
             prune_edges: False
             interaction_type: interaction_mesh
-            interaction_choices: ["self","other_agent"]
+            interaction_choices: ["self"]
             index_type: link # could be link or joint 
             # interaction_choices: ["self","ground"]
             interaction_weight_kernel: 5
@@ -241,25 +226,12 @@ config:
                 - left_hand
 
 
-            kin_oppo_interaction_joint_candidates:
-                - Head
-                - Spine2
-                - RightArm
-                - RightForeArm
-                - RightHand
-                - LeftArm
-                - LeftForeArm
-                - LeftHand
-
-            oppo_interaction_joint_candidates:
-                - head
-                - torso
-                - right_upper_elbow
-                - right_upper_forearm
-                - right_hand
-                - left_upper_elbow
-                - left_upper_forearm
-                - left_hand
+            # interaction_joint_candidates:
+            #     - Head
+            #     - Head
+            #     - Head
+            #     - Head
+            #     - Head
 
             # load_ref_interaction : data/interaction/jumping_jack/interaction.pkl
             load_ref_interaction : null

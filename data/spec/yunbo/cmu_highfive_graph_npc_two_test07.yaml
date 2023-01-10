@@ -1,5 +1,5 @@
 run: DDPPO
-name: CMUHighFiveNpcTwoTest06
+name: CMUHighFiveNpcTwoTest07
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -106,7 +106,7 @@ config:
                 method: height
                 height_min: 0.3
         RSI:
-            dist_type: first
+            dist_type: uniform
         state:
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
             # choices: ["sim_interaction_graph_state","ref_interaction_graph_state"]
@@ -158,7 +158,7 @@ config:
                 - player2
             char_info_module:
                 - char_info/baxter_char_info.py
-                - char_info/baxter_char_info_oppo.py
+                - char_info/baxter_char_info_oppo2.py
             sim_char_file:
                 - data/npc/baxter_description/urdf/baxter_edit.urdf
                 - data/npc/baxter_description/urdf/baxter_edit.urdf
