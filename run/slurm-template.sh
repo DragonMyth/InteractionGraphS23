@@ -7,7 +7,7 @@ ${PARTITION_OPTION}
 
 # Mail events (NONE, BEGIN, END, FAIL, ALL)
 #SBATCH --mail-type=ALL
-#SBATCH --mail-user=yzhang3027@fb.com
+#SBATCH --mail-user=jungdam@fb.com
 
 #SBATCH --job-name=${JOB_NAME}
 #SBATCH --output=${OUT_FILE}
