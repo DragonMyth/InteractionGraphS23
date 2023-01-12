@@ -58,6 +58,10 @@ class Env(env_humanoid_base.Env):
 
         if self._include_object:
             self.load_object()
+
+
+        self._full_matrix_dist = []
+        self._full_matrix_dist_raw = []
         self._interaction_joints_xform = []
         self._oppo_interaction_joints_xform = []
         self._object_interaction_joints_xform = []
@@ -65,81 +69,126 @@ class Env(env_humanoid_base.Env):
         self._kin_interaction_joints_xform = []
         self._kin_oppo_interaction_joints_xform = []
 
-        self._self_interaction_vert_cnt = 0
-        self._oppo_interaction_vert_cnt = 0
+        self._self_interaction_vert_cnt = []
+        self._oppo_interaction_vert_cnt = []
+
         self._object_interaction_vert_cnt = 0
-        self._full_matrix_dist = []
-        self._full_matrix_dist_raw = []
+        interaction_joints_group = []
+        oppo_interaction_joints_group = []
+        kin_interaction_joints_group = []
+        kin_oppo_interaction_joints_group = []
 
-        self._interaction_filters = {}
-        if self._interaction_joints is not None:
-            joints = []
-            joint_idx_list = self._sim_agent[0]._char_info.joint_idx
-            for i in self._interaction_joints:
-                if type(i) is dict:
-                    joint_name = list(i.keys())[0]
-                    translation = np.array(i[joint_name])
-                    xform = conversions.p2T(translation)
+        for idx in range(self._num_agent):
+            oppo_idx = 1-idx
+            if self._interaction_joints is not None:
+                if isinstance(self._interaction_joints[0],list):
+                    interaction_joints = self._interaction_joints[idx]    
                 else:
-                    joint_name = i
-                    xform = conversions.p2T([0,0,0])
-                joints.append(joint_idx_list[joint_name])
-                self._interaction_joints_xform.append(xform)
+                    interaction_joints = self._interaction_joints
+
+                joints = []
+                joint_idx_list = self._sim_agent[idx]._char_info.joint_idx
+                interaction_joints_xform = []
+                for i in interaction_joints:
+                    if type(i) is dict:
+                        joint_name = list(i.keys())[0]
+                        translation = np.array(i[joint_name])
+                        xform = conversions.p2T(translation)
+                    else:
+                        joint_name = i
+                        xform = conversions.p2T([0,0,0])
+                    joints.append(joint_idx_list[joint_name])
+                    interaction_joints_xform.append(xform)
+
+                self._interaction_joints_xform.append(interaction_joints_xform)
+                self._self_interaction_vert_cnt.append(len(self._interaction_joints))
+                interaction_joints_group.append(joints)
+
+            if self._kin_interaction_joints is not None:
+                if isinstance(self._kin_interaction_joints[0],list):
+                    kin_interaction_joints = self._kin_interaction_joints[idx]    
+                else:
+                    kin_interaction_joints = self._kin_interaction_joints
+
+                joints = []
+                joint_idx_list = self._kin_agent[idx]._char_info.joint_idx
+                kin_interaction_joints_xform = []
+                for i in kin_interaction_joints:
+                    if type(i) is dict:
+                        joint_name = list(i.keys())[0]
+                        translation = np.array(i[joint_name])
+                        xform = conversions.p2T(translation)
+                    else:
+                        joint_name = i
+                        xform = conversions.p2T([0,0,0])
+                    joints.append(joint_idx_list[joint_name])
+                    kin_interaction_joints_xform.append(xform)
+
+                self._kin_interaction_joints_xform.append(kin_interaction_joints_xform)
+                kin_interaction_joints_group.append(joints)
+
+            else:
                 
-            self._interaction_joints = joints
-            self._self_interaction_vert_cnt = len(self._interaction_joints)
-        if self._kin_interaction_joints is not None:
-            joints = []
-            joint_idx_list = self._kin_agent[0]._char_info.joint_idx
-            for i in self._kin_interaction_joints:
-                if type(i) is dict:
-                    joint_name = list(i.keys())[0]
-                    translation = np.array(i[joint_name])
-                    xform = conversions.p2T(translation)
-                else:
-                    joint_name = i
-                    xform = conversions.p2T([0,0,0])
-                joints.append(joint_idx_list[joint_name])
-                self._kin_interaction_joints_xform.append(xform)
-            self._kin_interaction_joints = joints
-        else:
-            self._kin_interaction_joints = self._interaction_joints
-            self._kin_interaction_joints_xform = self._interaction_joints_xform
+                kin_interaction_joints_group = interaction_joints_group
+                self._kin_interaction_joints_xform.append(self._interaction_joints_xform[idx])
 
-        if self._oppo_interaction_joints is not None:
-            joints = []
-            joint_idx_list = self._sim_agent[0]._char_info.joint_idx
-            for i in self._oppo_interaction_joints:
-                if type(i) is dict:
-                    joint_name = list(i.keys())[0]
-                    translation = np.array(i[joint_name])
-                    xform = conversions.p2T(translation)
+            if self._oppo_interaction_joints is not None:
+                if isinstance(self._oppo_interaction_joints[0],list):
+                    oppo_interaction_joints = self._oppo_interaction_joints[idx]    
                 else:
-                    joint_name = i
-                    xform = conversions.p2T([0,0,0])
-                joints.append(joint_idx_list[joint_name])
-                self._oppo_interaction_joints_xform.append(xform)
-            self._oppo_interaction_joints = joints
-            self._oppo_interaction_vert_cnt = len(self._oppo_interaction_joints)
- 
-        if self._kin_oppo_interaction_joints is not None:
-            joints = []
-            joint_idx_list = self._kin_agent[0]._char_info.joint_idx
-            for i in self._kin_oppo_interaction_joints:
-                if type(i) is dict:
-                    joint_name = list(i.keys())[0]
-                    translation = np.array(i[joint_name])
-                    xform = conversions.p2T(translation)
-                else:
-                    joint_name = i
-                    xform = conversions.p2T([0,0,0])
-                joints.append(joint_idx_list[joint_name])
-                self._kin_oppo_interaction_joints_xform.append(xform)
-            self._kin_oppo_interaction_joints = joints
+                    oppo_interaction_joints = self._oppo_interaction_joints
 
-        else:
-            self._kin_oppo_interaction_joints = self._oppo_interaction_joints
-            self._kin_oppo_interaction_joints_xform = self._oppo_interaction_joints_xform
+                joints = []
+                joint_idx_list = self._sim_agent[oppo_idx]._char_info.joint_idx
+                oppo_interaction_joints_xform = []
+                for i in oppo_interaction_joints:
+                    if type(i) is dict:
+                        joint_name = list(i.keys())[0]
+                        translation = np.array(i[joint_name])
+                        xform = conversions.p2T(translation)
+                    else:
+                        joint_name = i
+                        xform = conversions.p2T([0,0,0])
+                    joints.append(joint_idx_list[joint_name])
+                    oppo_interaction_joints_xform.append(xform)
+
+                self._oppo_interaction_joints_xform.append(oppo_interaction_joints_xform)
+                self._oppo_interaction_vert_cnt.append(len(self._oppo_interaction_joints))
+                oppo_interaction_joints_group.append(joints)
+    
+            if self._kin_oppo_interaction_joints is not None:
+
+                if isinstance(self._kin_oppo_interaction_joints[0],list):
+                    kin_oppo_interaction_joints = self._kin_oppo_interaction_joints[idx]    
+                else:
+                    kin_oppo_interaction_joints = self._kin_oppo_interaction_joints
+
+                joints = []
+                joint_idx_list = self._kin_agent[oppo_idx]._char_info.joint_idx
+                kin_oppo_interaction_joints_xform = []
+                for i in kin_oppo_interaction_joints:
+                    if type(i) is dict:
+                        joint_name = list(i.keys())[0]
+                        translation = np.array(i[joint_name])
+                        xform = conversions.p2T(translation)
+                    else:
+                        joint_name = i
+                        xform = conversions.p2T([0,0,0])
+                    joints.append(joint_idx_list[joint_name])
+                    kin_oppo_interaction_joints_xform.append(xform)
+
+                self._kin_oppo_interaction_joints_xform.append(kin_oppo_interaction_joints_xform)
+                kin_oppo_interaction_joints_group.append(joints)
+            else:
+
+                kin_oppo_interaction_joints_group = oppo_interaction_joints_group
+                self._kin_oppo_interaction_joints_xform.append(self._oppo_interaction_joints_xform[idx])
+
+
+        self._interaction_joints = interaction_joints_group
+        self._oppo_interaction_joints = oppo_interaction_joints_group
+        self._kin_interaction_joints = kin_interaction_joints_group
+        self._kin_oppo_interaction_joints = kin_oppo_interaction_joints_group
 
         if self._object_interaction_joints:
             ''' Include interaction vertices for object'''
@@ -548,20 +597,20 @@ class Env(env_humanoid_base.Env):
                 other_agent = self._sim_agent[1-idx]
             if self._include_object:
                 obj_agent = self._obj_sim_agent[0]
-            interaction_points = self._interaction_joints
-            interaction_point_xforms = self._interaction_joints_xform
-            oppo_interaction_points = self._oppo_interaction_joints
-            oppo_interaction_point_xforms = self._oppo_interaction_joints_xform
+            interaction_points = self._interaction_joints[idx]
+            interaction_point_xforms = self._interaction_joints_xform[idx]
+            oppo_interaction_points = self._oppo_interaction_joints[idx]
+            oppo_interaction_point_xforms = self._oppo_interaction_joints_xform[idx]
         elif agent_type == "kin":
             agent = self._kin_agent[idx]
             if len(self._kin_agent)>1:
                 other_agent = self._kin_agent[1-idx]
             if self._include_object:
                 obj_agent = self._obj_kin_agent[0]
-            interaction_points = self._kin_interaction_joints
-            interaction_point_xforms = self._kin_interaction_joints_xform
-            oppo_interaction_points = self._kin_oppo_interaction_joints
-            oppo_interaction_point_xforms = self._kin_oppo_interaction_joints_xform
+            interaction_points = self._kin_interaction_joints[idx]
+            interaction_point_xforms = self._kin_interaction_joints_xform[idx]
+            oppo_interaction_points = self._kin_oppo_interaction_joints[idx]
+            oppo_interaction_point_xforms = self._kin_oppo_interaction_joints_xform[idx]
 
         all_interaction_points = []
 
@@ -988,7 +1037,7 @@ class Env(env_humanoid_base.Env):
         return (self.get_all_interaction_points("sim",idx).shape[0],6)
     def dim_interaction(self,idx):
         if self.current_interaction:
-            return self.get_general_interaction_graph(0,"sim").shape[idx]
+            return self.get_general_interaction_graph(idx,"sim").shape[idx]
         else:
             return 0
 
@@ -1579,8 +1628,8 @@ class Env(env_humanoid_base.Env):
             sim_diff_2_base_ratio =  np.nan_to_num(sim_diff_2_base / np.linalg.norm(base_sim_full_mat,axis=2)[:,:,np.newaxis])
             kin_diff_2_base_ratio =  np.nan_to_num(kin_diff_2_base / np.linalg.norm(base_kin_full_mat,axis=2)[:,:,np.newaxis])
 
-            self_vert_cnt = self._self_interaction_vert_cnt
-            oppo_vert_cnt = self._oppo_interaction_vert_cnt
+            self_vert_cnt = self._self_interaction_vert_cnt[idx]
+            oppo_vert_cnt = self._oppo_interaction_vert_cnt[idx]
 
             sim_diff_2_base_ratio[self_vert_cnt:,:-oppo_vert_cnt] = sim_pairwise_dist_full_mat[self_vert_cnt:,:-oppo_vert_cnt]*edges_full_mat[self_vert_cnt:,:-oppo_vert_cnt,np.newaxis]
             sim_diff_2_base_ratio[:-oppo_vert_cnt,self_vert_cnt:] = sim_pairwise_dist_full_mat[:-oppo_vert_cnt,self_vert_cnt:]*edges_full_mat[:-oppo_vert_cnt,self_vert_cnt:,np.newaxis]
