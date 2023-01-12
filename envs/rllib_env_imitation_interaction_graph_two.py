@@ -68,19 +68,23 @@ class HumanoidImitationInteractionGraphTwo(TaskSettableEnv,MultiAgentEnv):
         
         ob_scale = np.array(env_config.get('ob_scale', 1000.0))
         
-        dim_state = self.base_env.dim_state(0)
-        dim_state_task = self.base_env.dim_state_task(0)
-        dim_state_body = dim_state-dim_state_task
-        self.dim_interaction = self.base_env.dim_interaction(0)
-        self.dim_feature = self.base_env.dim_feature(0)
-        self.num_state_interaction = self.base_env.num_interaction(0)
+
+
         self.sparse_rep = self.base_env.is_sparse_interaction()
-        action_range_min, action_range_max = self.base_env.action_range(0)
         self.observation_space = []
         self.observation_space_body = []
         self.observation_space_task = []
         self.action_space = []
         for i in range(self.base_env._num_agent):
+            dim_state = self.base_env.dim_state(i)
+            dim_state_task = self.base_env.dim_state_task(i)
+            dim_state_body = dim_state-dim_state_task
+
+            # self.dim_interaction = self.base_env.dim_interaction(i)
+            # self.dim_feature = self.base_env.dim_feature(i)
+
+            # self.num_state_interaction = self.base_env.num_interaction(i)
+            action_range_min, action_range_max = self.base_env.action_range(i)
             dim_state = self.base_env.dim_state(i)
             dim_action = self.base_env.dim_action(i)
             self.observation_space.append(
@@ -301,13 +305,13 @@ class EnvRenderer(er.EnvRenderer):
             self.data[i]['reward_info']=info[agent_id]['rew_info']
             self.data[i]['reward'].append(rew[agent_id])
             self.data[i]['time'].append(self.get_elapsed_time())
-            self.data[i]['states'].append((self.env.format_state(s1[agent_id])))
+            # self.data[i]['states'].append((self.env.format_state(s1[agent_id])))
 
             ## Used to examine the split error of the reward
             if hasattr(self.env.base_env, '_full_matrix_dist') and self.env.base_env._full_matrix_dist[i] is not None:
 
-                self_vert_cnt = self.env.base_env._self_interaction_vert_cnt
-                oppo_vert_cnt = self.env.base_env._oppo_interaction_vert_cnt
+                self_vert_cnt = self.env.base_env._self_interaction_vert_cnt[i]
+                oppo_vert_cnt = self.env.base_env._oppo_interaction_vert_cnt[i]
                 
 
                 self_err = np.sum(self.env.base_env._full_matrix_dist[i][:self_vert_cnt,:self_vert_cnt]) + np.sum(self.env.base_env._full_matrix_dist[i][-oppo_vert_cnt:,-oppo_vert_cnt:])
