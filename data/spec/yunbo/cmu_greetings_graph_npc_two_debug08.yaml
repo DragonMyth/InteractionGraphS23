@@ -1,4 +1,4 @@
-run: PPO
+run: DDPPO
 name: CMUGreetingsNpcTwoDebug08
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
@@ -18,7 +18,7 @@ config:
     lr: 0.00001
     sgd_minibatch_size: 500
     horizon: 3600
-    train_batch_size: 1000
+    train_batch_size: 10000
     rollout_fragment_length: 25
     normalize_actions: false
     clip_actions: true
