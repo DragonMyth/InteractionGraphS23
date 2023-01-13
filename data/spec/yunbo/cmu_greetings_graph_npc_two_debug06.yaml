@@ -1,5 +1,5 @@
-run: PPO
-name: CMUGreetingsNpcTwoTest04
+run: DDPPO
+name: CMUGreetingsNpcTwoDebug06
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -18,7 +18,7 @@ config:
     lr: 0.00001
     sgd_minibatch_size: 500
     horizon: 3600
-    train_batch_size: 100000
+    train_batch_size: 50000
     rollout_fragment_length: 25
     normalize_actions: false
     clip_actions: true
@@ -106,7 +106,7 @@ config:
                 method: height
                 height_min: 0.3
         RSI:
-            dist_type: uniform
+            dist_type: first
         state:
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
             # choices: ["sim_interaction_graph_state","ref_interaction_graph_state"]
@@ -171,7 +171,7 @@ config:
                             scale: 2.5
             fn_map:
                 - robot
-                - human
+                - robot
    
         early_term:
             # 'sim_div', 'sim_window', task_end', 'falldown', 'low_reward'
@@ -187,10 +187,10 @@ config:
                 - player2
             char_info_module:
                 - char_info/baxter_char_info_greeting2.py
-                - char_info/cmu_char_info.py
+                - char_info/baxter_char_info_greeting.py
             sim_char_file:
                 - data/npc/baxter_description/urdf/baxter_edit.urdf
-                - data/character/cmu_s1_box.urdf 
+                - data/npc/baxter_description/urdf/baxter_edit.urdf
             kin_char_info_module:
                 - char_info/cmu_char_info.py
                 - char_info/cmu_char_info.py
@@ -226,8 +226,9 @@ config:
                     actuation_raw_input: true
                     self_collision: false
                 - 
-                    actuation: spd
-                    self_collision: true
+                    actuation: cp
+                    actuation_raw_input: true
+                    self_collision: false
             ref_motion_height_fix:
                 - 
                     0
@@ -267,13 +268,6 @@ config:
                     - LeftArm
                     - LeftForeArm
                     - LeftHand
-                    - RightUpLeg
-                    - RightLeg
-                    - RightFoot
-                    - LeftUpLeg
-                    - LeftLeg
-                    - LeftFoot
-                    - Hips
             interaction_joint_candidates:
                 -
                     - head
@@ -285,23 +279,14 @@ config:
                     - left_upper_forearm
                     - left_hand
                 -
-                    - Head
-                    - Spine2
-                    - RightArm
-                    - RightForeArm
-                    - RightHand
-                    - LeftArm
-                    - LeftForeArm
-                    - LeftHand
-                    - RightUpLeg
-                    - RightLeg
-                    - RightFoot
-                    - LeftUpLeg
-                    - LeftLeg
-                    - LeftFoot
-                    - Hips
-
-
+                    - head
+                    - torso
+                    - right_upper_elbow
+                    - right_upper_forearm
+                    - right_hand
+                    - left_upper_elbow
+                    - left_upper_forearm
+                    - left_hand
             kin_oppo_interaction_joint_candidates:
                 -
                     - Head
@@ -312,13 +297,6 @@ config:
                     - LeftArm
                     - LeftForeArm
                     - LeftHand
-                    - RightUpLeg
-                    - RightLeg
-                    - RightFoot
-                    - LeftUpLeg
-                    - LeftLeg
-                    - LeftFoot
-                    - Hips
                 -
                     - Head
                     - Spine2
@@ -330,21 +308,14 @@ config:
                     - LeftHand
             oppo_interaction_joint_candidates:
                 -
-                    - Head
-                    - Spine2
-                    - RightArm
-                    - RightForeArm
-                    - RightHand
-                    - LeftArm
-                    - LeftForeArm
-                    - LeftHand
-                    - RightUpLeg
-                    - RightLeg
-                    - RightFoot
-                    - LeftUpLeg
-                    - LeftLeg
-                    - LeftFoot
-                    - Hips
+                    - head
+                    - torso
+                    - right_upper_elbow
+                    - right_upper_forearm
+                    - right_hand
+                    - left_upper_elbow
+                    - left_upper_forearm
+                    - left_hand
                 -
                     - head
                     - torso

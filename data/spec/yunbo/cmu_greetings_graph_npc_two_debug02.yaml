@@ -1,5 +1,5 @@
-run: PPO
-name: CMUGreetingsNpcTwoTest04
+run: DDPPO
+name: CMUGreetingsNpcTwoDebug02
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -106,7 +106,7 @@ config:
                 method: height
                 height_min: 0.3
         RSI:
-            dist_type: uniform
+            dist_type: first
         state:
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
             # choices: ["sim_interaction_graph_state","ref_interaction_graph_state"]
@@ -157,18 +157,18 @@ config:
                         kernel: 
                             type: gaussian
                             scale: 2
-                      - name: root_remove_height
-                        op: leaf
-                        weight: 1.0
-                        kernel: 
-                            type: gaussian
-                            scale: 2.5
-                      - name: com_remove_height
-                        op: leaf
-                        weight: 1.0
-                        kernel: 
-                            type: gaussian
-                            scale: 2.5
+                      # - name: root_remove_height
+                      #   op: leaf
+                      #   weight: 1.0
+                      #   kernel: 
+                      #       type: gaussian
+                      #       scale: 2.5
+                      # - name: com_remove_height
+                      #   op: leaf
+                      #   weight: 1.0
+                      #   kernel: 
+                      #       type: gaussian
+                      #       scale: 2.5
             fn_map:
                 - robot
                 - human
