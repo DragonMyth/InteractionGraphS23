@@ -1,5 +1,5 @@
 run: DDPPO
-name: CMUGreetingsNpcTwoTest01
+name: CMUGreetingsNpcTwoTest02
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
