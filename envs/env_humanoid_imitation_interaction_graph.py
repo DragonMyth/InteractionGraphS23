@@ -210,14 +210,13 @@ class Env(env_humanoid_base.Env):
             # joint_idx_list = self._sim_agent[0]._char_info.joint_idx
             # [joints.append(joint_idx_list[i]) for i in self._object_interaction_joints]
             # self._object_interaction_joints = joints   
-            pass        
+
         if config.get('lazy_creation'):
             if self._verbose:
                 print('The environment was created in a lazy fashion.')
                 print('The function \"create\" should be called before it')
             return
-
-        self._prune_edges = self.remove_neighbour_connectivity()
+        
         self.current_interaction = None
 
         ''' Add environemtn objects '''
@@ -414,13 +413,6 @@ class Env(env_humanoid_base.Env):
             return
         s = self.get_all_interaction_points("sim",0).shape[0]
         edges = np.ones((s,s))
-        if self._is_prune_edges:
-            ## Right now doing manual picking on neighbour edges
-            edges[1,2] , edges[2,1] = 0,0
-            edges[3,4] , edges[4,3] = 0,0
-            edges[5,6] , edges[6,5] = 0,0
-            edges[7,8] , edges[8,7] = 0,0
-
 
         return edges
         
@@ -1226,7 +1218,7 @@ class Env(env_humanoid_base.Env):
             col = edge_indices[1]
             edge_data = np.ones_like(row)
             edge_indices_mtx = coo_matrix((edge_data,(row,col)),shape=(len(self._sim_interaction_points[0]),len(self._sim_interaction_points[0]))).toarray()
-            edge_indices_mtx = coo_matrix(edge_indices_mtx * self._prune_edges)
+            edge_indices_mtx = coo_matrix(edge_indices_mtx)
             edge_indices = np.array([edge_indices_mtx.row,edge_indices_mtx.col])
         else:
             edge_indices = np.array([[0],[0]])
@@ -1933,10 +1925,9 @@ class Env(env_humanoid_base.Env):
                     pa = sim_interaction_points[edge_index[0]]
                     pb =  sim_interaction_points[edge_index[1]]
                     for k in range(len(pa)):
-                        if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
-                            weight = min(0.01+all_weight[k]*10,1)
-                            color = [0, 0, 1, weight]
-                            rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
+                        weight = min(0.01+all_weight[k]*10,1)
+                        color = [0, 0, 1, weight]
+                        rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
 
                 if (not rm.flag['toggle_interaction']) or rm.flag['kin_model']:
                         kin_interaction_points = self._kin_interaction_points[i]
@@ -1959,10 +1950,9 @@ class Env(env_humanoid_base.Env):
                     pa = sim_interaction_points[edge_index[0]]
                     pb =  sim_interaction_points[edge_index[1]]
                     for k in range(len(pa)):
-                        if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
-                            weight = min(all_weight[k]*5,1)
-                            color_solid = [0, 0, 1, 1]
-                            rm.gl_render.render_line(pa[k], pb[k], color=color_solid,line_width=1)
+                        weight = min(all_weight[k]*5,1)
+                        color_solid = [0, 0, 1, 1]
+                        rm.gl_render.render_line(pa[k], pb[k], color=color_solid,line_width=1)
 
                 if (not rm.flag['toggle_interaction']) or rm.flag['kin_model']:
                         kin_interaction_points = self._kin_interaction_points[i]
@@ -2028,10 +2018,9 @@ class Env(env_humanoid_base.Env):
                 pa = sim_interaction_points[edge_index[0]]
                 pb =  sim_interaction_points[edge_index[1]]
                 for k in range(len(pa)):
-                    if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
-                        weight = errs[edge_index[0][k],edge_index[1][k]]
-                        color = [0, 0, 1, 1000*weight]
-                        rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
+                    weight = errs[edge_index[0][k],edge_index[1][k]]
+                    color = [0, 0, 1, 1000*weight]
+                    rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
             if (not rm.flag['toggle_interaction']) or rm.flag['kin_model']:
                 edge_index = interaction_mesh[agent]
                 errs = np.array(self._full_matrix_dist[agent])
@@ -2039,10 +2028,9 @@ class Env(env_humanoid_base.Env):
                 pa = kin_interaction_points[edge_index[0]]
                 pb =  kin_interaction_points[edge_index[1]]
                 for k in range(len(pa)):
-                    if self._prune_edges[edge_index[0][k],edge_index[1][k]]==1:
-                        weight = errs[edge_index[0][k],edge_index[1][k]]
-                        color = [1, 0, 0, 1000*weight]
-                        rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
+                    weight = errs[edge_index[0][k],edge_index[1][k]]
+                    color = [1, 0, 0, 1000*weight]
+                    rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
         if rm.flag['sim_model'] and self._include_object:
             rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
             colors = [rm.COLOR_AGENT]
