@@ -1243,29 +1243,43 @@ def policies_to_train(share_policy):
 def config_override(spec):
     env = env_cls(spec["config"]["env_config"])
 
-    model_config = copy.deepcopy(spec["config"]["model"])
-    model = model_config.get("custom_model")   
-    if model and model == "task_agnostic_policy_type1":
-        model_config.get("custom_model_config").update({
-            "observation_space_body": copy.deepcopy(env.observation_space_body[0]),
-            "observation_space_task": copy.deepcopy(env.observation_space_task[0]),
-        })
-    if model and model == "interaction_net":
-        
-        model_config.get("custom_model_config").update({
-            "interaction_obs_dim": env.dim_interaction,
-            "interaction_obs_num": env.num_state_interaction,
-            "interaction_feature_dim": env.dim_feature,
-            "sparse_interaction" : env.sparse_rep
-        })
+    # model_config = copy.deepcopy(spec["config"]["model"])
+    # model = model_config.get("custom_model")   
+    # if model and model == "task_agnostic_policy_type1":
+    #     model_config.get("custom_model_config").update({
+    #         "observation_space_body": copy.deepcopy(env.observation_space_body[0]),
+    #         "observation_space_task": copy.deepcopy(env.observation_space_task[0]),
+    #     })
+    # if model and model == "interaction_net":
+    #     model_config.get("custom_model_config").update({
+    #         "interaction_obs_dim": env.dim_interaction,
+    #         "interaction_obs_num": env.num_state_interaction,
+    #         "interaction_feature_dim": env.dim_feature,
+    #         "sparse_interaction" : env.sparse_rep
+    #     })
 
     share_policy = \
         spec["config"]["env_config"].get("share_policy", False)
 
     def gen_policy(i):
+        model_config = copy.deepcopy(spec["config"]["model"])
+        model = model_config.get("custom_model")   
+        if model and model == "task_agnostic_policy_type1":
+            model_config.get("custom_model_config").update({
+                "observation_space_body": copy.deepcopy(env.observation_space_body[i]),
+                "observation_space_task": copy.deepcopy(env.observation_space_task[i]),
+            })
+        if model and model == "interaction_net":
+            model_config.get("custom_model_config").update({
+                "interaction_obs_dim": env.dim_interaction,
+                "interaction_obs_num": env.num_state_interaction,
+                "interaction_feature_dim": env.dim_feature,
+                "sparse_interaction" : env.sparse_rep
+            })
         return PolicySpec(
             observation_space=copy.deepcopy(env.observation_space[i]),
             action_space=copy.deepcopy(env.action_space[i]),
+            config={"model": model_config}
         )
     if share_policy:
         policies = {
@@ -1287,6 +1301,6 @@ def config_override(spec):
                     agent_id, share_policy=share_policy),
             "policies_to_train": policies_to_train(share_policy),
         },
-        "model": model_config,
+        # "model": model_config,
     }
     return config

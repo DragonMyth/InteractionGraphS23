@@ -1,5 +1,5 @@
-run: PPO
-name: CMUGreetingsNpcTwoTest04
+run: DDPPO
+name: CMUGreetingsNpcTwoDebug05
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -106,7 +106,7 @@ config:
                 method: height
                 height_min: 0.3
         RSI:
-            dist_type: uniform
+            dist_type: first
         state:
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
             # choices: ["sim_interaction_graph_state","ref_interaction_graph_state"]
@@ -170,7 +170,7 @@ config:
                             type: gaussian
                             scale: 2.5
             fn_map:
-                - robot
+                - human
                 - human
    
         early_term:
@@ -186,10 +186,10 @@ config:
                 - player1
                 - player2
             char_info_module:
-                - char_info/baxter_char_info_greeting2.py
+                - char_info/cmu_char_info.py
                 - char_info/cmu_char_info.py
             sim_char_file:
-                - data/npc/baxter_description/urdf/baxter_edit.urdf
+                - data/character/cmu_s2_box.urdf 
                 - data/character/cmu_s1_box.urdf 
             kin_char_info_module:
                 - char_info/cmu_char_info.py
@@ -197,11 +197,7 @@ config:
             kin_char_file:
                 - data/character/cmu_s2_box.urdf 
                 - data/character/cmu_s1_box.urdf 
-
-            # char_info_module:
-            #     - char_info/cmu_char_info.py
-            # sim_char_file:
-            #     - data/character/cmu_s1_box.urdf
+            
             ref_motion_scale:
                 - 1.0
                 - 1.0
@@ -222,9 +218,8 @@ config:
                             - data/motion/cmu/interactions/greeting002_S1_7s_30fps.bvh 
             physics:
                 - 
-                    actuation: cp
-                    actuation_raw_input: true
-                    self_collision: false
+                    actuation: spd
+                    self_collision: true
                 - 
                     actuation: spd
                     self_collision: true
@@ -258,6 +253,13 @@ config:
                     - LeftArm
                     - LeftForeArm
                     - LeftHand
+                    - RightUpLeg
+                    - RightLeg
+                    - RightFoot
+                    - LeftUpLeg
+                    - LeftLeg
+                    - LeftFoot
+                    - Hips
                 -
                     - Head
                     - Spine2
@@ -276,14 +278,21 @@ config:
                     - Hips
             interaction_joint_candidates:
                 -
-                    - head
-                    - torso
-                    - right_upper_elbow
-                    - right_upper_forearm
-                    - right_hand
-                    - left_upper_elbow
-                    - left_upper_forearm
-                    - left_hand
+                    - Head
+                    - Spine2
+                    - RightArm
+                    - RightForeArm
+                    - RightHand
+                    - LeftArm
+                    - LeftForeArm
+                    - LeftHand
+                    - RightUpLeg
+                    - RightLeg
+                    - RightFoot
+                    - LeftUpLeg
+                    - LeftLeg
+                    - LeftFoot
+                    - Hips
                 -
                     - Head
                     - Spine2
@@ -300,7 +309,6 @@ config:
                     - LeftLeg
                     - LeftFoot
                     - Hips
-
 
             kin_oppo_interaction_joint_candidates:
                 -
@@ -328,6 +336,13 @@ config:
                     - LeftArm
                     - LeftForeArm
                     - LeftHand
+                    - RightUpLeg
+                    - RightLeg
+                    - RightFoot
+                    - LeftUpLeg
+                    - LeftLeg
+                    - LeftFoot
+                    - Hips
             oppo_interaction_joint_candidates:
                 -
                     - Head
@@ -346,13 +361,20 @@ config:
                     - LeftFoot
                     - Hips
                 -
-                    - head
-                    - torso
-                    - right_upper_elbow
-                    - right_upper_forearm
-                    - right_hand
-                    - left_upper_elbow
-                    - left_upper_forearm
-                    - left_hand
+                    - Head
+                    - Spine2
+                    - RightArm
+                    - RightForeArm
+                    - RightHand
+                    - LeftArm
+                    - LeftForeArm
+                    - LeftHand
+                    - RightUpLeg
+                    - RightLeg
+                    - RightFoot
+                    - LeftUpLeg
+                    - LeftLeg
+                    - LeftFoot
+                    - Hips
             # load_ref_interaction : data/interaction/jumping_jack/interaction.pkl
             load_ref_interaction : null

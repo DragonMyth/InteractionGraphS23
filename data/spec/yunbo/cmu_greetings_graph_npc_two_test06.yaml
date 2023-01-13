@@ -1,5 +1,5 @@
-run: PPO
-name: CMUGreetingsNpcTwoTest04
+run: DDPPO
+name: CMUGreetingsNpcTwoTest06
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -186,7 +186,7 @@ config:
                 - player1
                 - player2
             char_info_module:
-                - char_info/baxter_char_info_greeting2.py
+                - char_info/baxter_char_info_greeting.py
                 - char_info/cmu_char_info.py
             sim_char_file:
                 - data/npc/baxter_description/urdf/baxter_edit.urdf
