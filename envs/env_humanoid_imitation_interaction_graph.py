@@ -123,11 +123,7 @@ class Env(env_humanoid_base.Env):
             # [joints.append(joint_idx_list[i]) for i in self._object_interaction_joints]
             # self._object_interaction_joints = joints   
             pass        
-        if config.get('lazy_creation'):
-            if self._verbose:
-                print('The environment was created in a lazy fashion.')
-                print('The function \"create\" should be called before it')
-            return
+
 
         self._prune_edges = self.remove_neighbour_connectivity()
         self.current_interaction = None
@@ -139,7 +135,13 @@ class Env(env_humanoid_base.Env):
             tf_chair = conversions.R2Q(constants.eye_R())
             self.env_obj = self._pb_client.loadURDF(
                 environment_file[0], [0.0, 0.0, 0.0], tf_chair, useFixedBase=True)
+        if config.get('lazy_creation'):
+            if self._verbose:
+                print('The environment was created in a lazy fashion.')
+                print('The function \"create\" should be called before it')
+            return   
         self.create()
+    
     def load_object(self):
         import importlib.util
         import sim_agent
