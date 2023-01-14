@@ -75,6 +75,13 @@ class HumanoidImitationInteractionGraphTwo(TaskSettableEnv,MultiAgentEnv):
         self.observation_space_body = []
         self.observation_space_task = []
         self.action_space = []
+        
+        self.separate_action_dims =  []
+        
+        for i in range(self.base_env._num_agent):
+            dim_action = self.base_env.dim_action(i)
+            self.separate_action_dims.append(dim_action)
+        max_act_dim_agent = np.argmax(self.separate_action_dims)
         for i in range(self.base_env._num_agent):
             dim_state = self.base_env.dim_state(i)
             dim_state_task = self.base_env.dim_state_task(i)
@@ -84,7 +91,7 @@ class HumanoidImitationInteractionGraphTwo(TaskSettableEnv,MultiAgentEnv):
             # self.dim_feature = self.base_env.dim_feature(i)
 
             # self.num_state_interaction = self.base_env.num_interaction(i)
-            action_range_min, action_range_max = self.base_env.action_range(i)
+            action_range_min, action_range_max = self.base_env.action_range(max_act_dim_agent)
             dim_state = self.base_env.dim_state(i)
             dim_action = self.base_env.dim_action(i)
             self.observation_space.append(
@@ -133,8 +140,8 @@ class HumanoidImitationInteractionGraphTwo(TaskSettableEnv,MultiAgentEnv):
             self.player2: self.base_env.state(idx=1)
         }
     def step(self, action_dict):
-        action1 = action_dict[self.player1]
-        action2 = action_dict[self.player2]
+        action1 = action_dict[self.player1][:self.separate_action_dims[0]]
+        action2 = action_dict[self.player2][:self.separate_action_dims[1]]
 
         r, info_env = self.base_env.step([action1,action2])
 
