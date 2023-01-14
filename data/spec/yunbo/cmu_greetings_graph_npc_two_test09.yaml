@@ -1,5 +1,5 @@
 run: DDPPO
-name: CMUGreetingsNpcTwoDebug01
+name: CMUGreetingsNpcTwoTest09
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -17,81 +17,29 @@ config:
     num_sgd_iter: 20
     lr: 0.00001
     sgd_minibatch_size: 500
-    horizon: 36
-    train_batch_size: 1000
+    horizon: 3600
+    train_batch_size: 100000
     rollout_fragment_length: 25
     normalize_actions: false
     clip_actions: true
     num_envs_per_worker: 8
     num_cpus_per_worker: 8
     num_gpus_per_worker: 0
-    remote_worker_envs: false
+    remote_worker_envs: true
     framework: torch
 
     model:
-        custom_model: task_agnostic_policy_type1
+        custom_model: fcnn
         custom_model_config:
             log_std_type: constant
             sample_std: 0.1
-            task_encoder_type: "mlp"
-            task_encoder_inputs:
-                - body
-                - task
-            task_encoder_output_dim: 32
-            task_encoder_layers:
-                - type: fc
-                  hidden_size: 256
-                  activation: "relu"
-                  init_weight: 
-                      name: normc
-                      std: 1.0
-                - type: fc
-                  hidden_size: 128
-                  activation: "relu"
-                  init_weight: 
-                      name: normc
-                      std: 1.0
-                - type: fc
-                  hidden_size: output
-                  activation: "linear"
-                  init_weight: 
-                      name: normc
-                      std: 0.01
-            
-            body_encoder_enable: false
-            motor_decoder_type: "mlp"
-            motor_decoder_inputs:
-                - body
-                - task
-            motor_decoder_layers:
-                - type: fc
-                  hidden_size: 256
-                  activation: "relu"
-                  init_weight: 
-                      name: normc
-                      std: 1.0
-                - type: fc
-                  hidden_size: 256
-                  activation: "relu"
-                  init_weight: 
-                      name: normc
-                      std: 1.0
-                - type: fc
-                  hidden_size: output
-                  activation: "linear"
-                  init_weight: 
-                      name: normc
-                      std: 0.01
-            motor_decoder_learnable: true
-            motor_decoder_helper_enable: false
-            motor_decoder_helper_range: 0.5
 
     num_workers: 8
     num_gpus: 0
     batch_mode: truncate_episodes
     observation_filter: NoFilter
     env_config:
-        lazy_creation: true
+        lazy_creation: false
         project_dir: /private/home/yzhang3027/ScaDive/
         fps_sim: 480
         fps_con: 30
@@ -171,7 +119,7 @@ config:
                             scale: 2.5
             fn_map:
                 - robot
-                - robot
+                - human
    
         early_term:
             # 'sim_div', 'sim_window', task_end', 'falldown', 'low_reward'
@@ -186,7 +134,7 @@ config:
                 - player1
                 - player2
             char_info_module:
-                - char_info/baxter_char_info_greeting2.py
+                - char_info/baxter_char_info_greeting.py
                 - char_info/cmu_char_info.py
             sim_char_file:
                 - data/npc/baxter_description/urdf/baxter_edit.urdf
