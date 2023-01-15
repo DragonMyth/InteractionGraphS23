@@ -330,10 +330,10 @@ class EnvRenderer(er.EnvRenderer):
             joint_data, link_data = self.env.base_env.get_render_data(i,'char')
             self.render_data[agent_id]['joint_data'].append(joint_data)
             self.render_data[agent_id]['link_data'].append(link_data)
-        # if len(self.env.base_env._obj_sim_agent)==1:
-        #     joint_data, link_data = self.env.base_env.get_render_data(0,'obj')
-        #     self.render_data['object']['joint_data'].append(joint_data)
-        #     self.render_data['object']['link_data'].append(link_data)
+        if len(self.env.base_env._obj_sim_agent)==1:
+            joint_data, link_data = self.env.base_env.get_render_data(0,'obj')
+            self.render_data['object']['joint_data'].append(joint_data)
+            self.render_data['object']['link_data'].append(link_data)
         
         return s2, rew, eoe, info
     def get_custom_data(self):
