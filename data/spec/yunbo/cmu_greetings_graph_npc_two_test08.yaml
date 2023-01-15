@@ -22,8 +22,8 @@ config:
     rollout_fragment_length: 25
     normalize_actions: false
     clip_actions: true
-    num_envs_per_worker: 4
-    num_cpus_per_worker: 4
+    num_envs_per_worker: 8
+    num_cpus_per_worker: 8
     num_gpus_per_worker: 0
     remote_worker_envs: true
     framework: torch
@@ -91,7 +91,7 @@ config:
     batch_mode: truncate_episodes
     observation_filter: NoFilter
     env_config:
-        lazy_creation: false
+        lazy_creation: true
         project_dir: /private/home/yzhang3027/ScaDive/
         fps_sim: 480
         fps_con: 30
