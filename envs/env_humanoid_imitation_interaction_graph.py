@@ -544,8 +544,11 @@ class Env(env_humanoid_base.Env):
             edge_indices = self._load_ref_interaction[motion_idx][current_frame][idx]
             return edge_indices
         else:
-            if interaction_type is None:
-                interaction_type = self._interaction_type
+            if interaction_type is None:                
+                if type(self._interaction_type) is str:
+                    interaction_type = self._interaction_type
+                else:
+                    interaction_type = self._interaction_type[idx]
 
             all_points = []
             interaction_points = self.get_all_interaction_points(agent_type,idx)
