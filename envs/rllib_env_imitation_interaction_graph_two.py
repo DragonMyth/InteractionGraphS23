@@ -636,10 +636,11 @@ class EnvRenderer(er.EnvRenderer):
             self.explore = not self.explore
             print('Exploration:', self.explore)
         elif key == b'E':
-            model = self.trainer.get_policy().model
-            exp_std = get_float_from_input("Exploration Std")
-            assert exp_std >= 0.0
-            model.set_exploration_std(exp_std)
+            for i, agent_id in enumerate(self.agent_ids):
+                model = self.get_trainer(i).get_policy( policy_mapping_fn(agent_id, self.share_policy)).model
+                exp_std = get_float_from_input("Exploration Std")
+                assert exp_std >= 0.0
+                model.set_exploration_std(exp_std)
         elif key == b'w':
             print('Save Model Weights...')
             for i, agent_id in enumerate(self.agent_ids):

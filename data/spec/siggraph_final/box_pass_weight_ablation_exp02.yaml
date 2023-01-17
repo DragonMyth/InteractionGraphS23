@@ -1,5 +1,5 @@
 run: DDPPO
-name: CMUMotionPriorPushupExp02
+name: BoxPassWeightAblationExp02
 local_dir: /checkpoint/yzhang3027/exp
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -82,7 +82,8 @@ config:
                       name: normc
                       std: 0.01
             motor_decoder_learnable: true
-            # motor_decoder_load_weights: "/checkpoint/yzhang3027/exp/CMUMotionPriorExp07/DDPPO_HumanoidImitationInteractionGraph_eb17e_00000_0_2022-11-29_09-40-30/task_agnostic_policy_motor_decoder.pt"
+            motor_decoder_load_weights: "data/motion_priors/task_agnostic_policy_motor_decoder.pt"
+
 
 
 
@@ -107,7 +108,7 @@ config:
                 height_min: 0.3
         state:
 
-            choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
+            choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs","obj_body","ref_obj_abs"]
             # choices: ["sim_interaction_graph_state","ref_interaction_graph_state"]
 
             body_type: facing_R6_h
@@ -123,7 +124,7 @@ config:
                 default:
                     name: total
                     op: mul
-                    child_nodes:
+                    child_nodes:  
 
                       - name: weighted_im_vel
                         op: leaf
@@ -151,6 +152,7 @@ config:
                         kernel: 
                             type: gaussian
                             scale: 2.5
+
             fn_map:
                 - default
                 - default
@@ -161,7 +163,21 @@ config:
                 - ref_motion_end
                 - low_reward
             low_reward_thres: 0.1
-            eoe_margin: 0.2
+            eoe_margin: 0.5
+        object:
+            obj_info_module:
+                - obj_info/cmu_big_box_obj_info.py
+            sim_obj_file:
+                - data/object/cmu_big_box.urdf
+            ref_motion_scale:
+                - 1.0
+            base_motion_file:
+                - data/motion/cmu/big_box_hierarchy.bvh
+            ref_motion_db:
+                -
+                    data:
+                        file:
+                            - data/motion/cmu/interactions/big_box_pass001_big_box_30fps.bvh
         character:
             name:
                 - player1
@@ -182,11 +198,11 @@ config:
                 -
                     data:
                         file:
-                            - data/motion/cmu/interactions/push_up001_S1_30fps.bvh
+                            - data/motion/cmu/interactions/big_box_pass001_S1_30fps.bvh
                 -
                     data:
                         file:
-                            - data/motion/cmu/interactions/push_up001_S2_30fps.bvh
+                            - data/motion/cmu/interactions/big_box_pass001_S2_30fps.bvh
             physics:
                 - actuation: spd
                   self_collision: true
@@ -195,42 +211,44 @@ config:
 
             reshape: 
                 -
+                    RightForeArm : [1.2,1,1]
+                    RightArm : [1.2,1,1]
+                    LeftForeArm : [1.2,1,1]
+                    LeftArm : [1.2,1,1]
+                    RightUpLeg: [1,1,1.2]
+                    RightLeg: [1,1,1.2]
+                    LeftUpLeg: [1,1,1.2]
+                    LeftLeg: [1,1,1.2]
 
-                    RightForeArm : [0.5,1,1]
-                    RightArm : [0.5,1,1]
-                    LeftForeArm : [0.5,1,1]
-                    LeftArm : [0.5,1,1]
-                    RightUpLeg: [1,1,0.5]
-                    RightLeg: [1,1,0.5]
-                    LeftUpLeg: [1,1,0.5]
-                    LeftLeg: [1,1,0.5]
                 - 
-                    RightForeArm : [1.3,1,1]
-                    RightArm : [1.3,1,1]
-                    LeftForeArm : [1.3,1,1]
-                    LeftArm : [1.3,1,1]
-                    RightUpLeg: [1,1,1.3]
-                    RightLeg: [1,1,1.3]
-                    LeftUpLeg: [1,1,1.3]
-                    LeftLeg: [1,1,1.3]
-
+                    RightForeArm : [1,1,1]
+            
             ref_motion_height_fix:
                 - 
-                    -0.38
+                    0
                 -
                     0
 
             reshape_ref: False
+
         interaction:
             interaction_enabled: True
             prune_edges: False
-            interaction_type: interaction_mesh
-            interaction_choices: ["self","other_agent"]
+            interaction_type: interaction_mesh_remove_self_obj_vert
+            interaction_choices: ["self","object","other_agent"]
             index_type: link # could be link or joint 
-            
             # interaction_choices: ["self","ground"]
-            interaction_weight_kernel: 10
-
+            interaction_weight_kernel: 0
+            object_interaction_joint_candidates:
+                - Root_geom : [0.25,  0.6,0.25]
+                - Root_geom : [0.25,  0.6,-0.25]
+                - Root_geom : [0.25,  -0.6,0.25]
+                - Root_geom : [0.25,  -0.6,-0.25]
+                - Root_geom : [-0.25,  0.6,0.25]
+                - Root_geom : [-0.25,  0.6,-0.25]
+                - Root_geom : [-0.25,  -0.6,0.25]
+                - Root_geom : [-0.25,  -0.6,-0.25]
+            
             oppo_interaction_joint_candidates:
                 - Hips
                 # - Spine
@@ -274,22 +292,6 @@ config:
                 - LeftUpLeg
                 - LeftLeg
                 - LeftFoot
-
                 - Head
             # load_ref_interaction : data/interaction/jumping_jack/interaction.pkl
             load_ref_interaction : null
-            constraints:
-                - 
-                    start_time: 8.3
-                    duration: 11.5
-                    parent_agent: 1
-                    parent_link: LeftHand
-                    child_agent: 0
-                    child_link: LeftLeg
-                - 
-                    start_time: 8.3
-                    duration: 11.5
-                    parent_agent: 1
-                    parent_link: RightHand
-                    child_agent: 0
-                    child_link: RightLeg

@@ -1,5 +1,5 @@
 run: DDPPO
-name: CMUMotionPriorPushupExp02
+name: LiftPushupIGScaledExp01
 local_dir: /checkpoint/yzhang3027/exp
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -82,7 +82,7 @@ config:
                       name: normc
                       std: 0.01
             motor_decoder_learnable: true
-            # motor_decoder_load_weights: "/checkpoint/yzhang3027/exp/CMUMotionPriorExp07/DDPPO_HumanoidImitationInteractionGraph_eb17e_00000_0_2022-11-29_09-40-30/task_agnostic_policy_motor_decoder.pt"
+            motor_decoder_load_weights: "data/motion_priors/task_agnostic_policy_motor_decoder.pt"
 
 
 
@@ -205,14 +205,7 @@ config:
                     LeftUpLeg: [1,1,0.5]
                     LeftLeg: [1,1,0.5]
                 - 
-                    RightForeArm : [1.3,1,1]
-                    RightArm : [1.3,1,1]
-                    LeftForeArm : [1.3,1,1]
-                    LeftArm : [1.3,1,1]
-                    RightUpLeg: [1,1,1.3]
-                    RightLeg: [1,1,1.3]
-                    LeftUpLeg: [1,1,1.3]
-                    LeftLeg: [1,1,1.3]
+                    RightForeArm : [1,1,1]
 
             ref_motion_height_fix:
                 - 
