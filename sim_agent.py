@@ -294,6 +294,7 @@ class SimAgent(object):
         new_body = ed0.createMultiBody([0,0,0])
         self._pb_client.removeBody(self._body_id)
         self._body_id = new_body
+        ed0.saveUrdf("scaled_agent_%s.urdf"%(self._name))
 
 
 
