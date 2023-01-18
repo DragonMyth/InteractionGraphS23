@@ -381,8 +381,12 @@ class Env(env_humanoid_base.Env):
                 sample_reject = self.reject_sampled_time(time)
         elif self._init_state_dist_type == 'first':
             time = 0
+        elif self._init_state_dist_type == 'reject_uniform':
+            sample_reject = True
+            while sample_reject:
+                time = np.random.uniform(0.0, ref_motion[0].length())
+                sample_reject = self.reject_sampled_time(time)     
 
-            
         for i in range(self._num_agent):
             self._start_time[i] = time 
           
