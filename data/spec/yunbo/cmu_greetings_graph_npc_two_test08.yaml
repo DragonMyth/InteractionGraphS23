@@ -1,7 +1,7 @@
 run: DDPPO
 name: CMUGreetingsNpcTwoTest08
 local_dir: /checkpoint/jungdam/exp_yunbo/
-checkpoint_freq: 100
+checkpoint_freq: 200
 checkpoint_at_end: true
 reuse_actors: true
 stop: 
@@ -14,11 +14,11 @@ config:
     clip_param: 0.2
     kl_coeff: 0.0
     vf_clip_param: 1000
-    num_sgd_iter: 20
+    num_sgd_iter: 10
     lr: 0.00001
     sgd_minibatch_size: 500
     horizon: 3600
-    train_batch_size: 100000
+    train_batch_size: 50000
     rollout_fragment_length: 25
     normalize_actions: false
     clip_actions: true
@@ -91,7 +91,7 @@ config:
     batch_mode: truncate_episodes
     observation_filter: NoFilter
     env_config:
-        lazy_creation: false
+        lazy_creation: true
         project_dir: /private/home/yzhang3027/ScaDive/
         fps_sim: 480
         fps_con: 30

@@ -110,7 +110,6 @@ config:
         state:
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
             # choices: ["sim_interaction_graph_state","ref_interaction_graph_state"]
-
             body_type: facing_R6_h
         action:
             # 'absolute', 'relative'

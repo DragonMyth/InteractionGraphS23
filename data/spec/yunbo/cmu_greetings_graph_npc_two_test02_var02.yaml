@@ -1,5 +1,5 @@
-run: DDPPO
-name: CMUGreetingsNpcTwoDebug08
+run: PPO
+name: CMUGreetingsNpcTwoTest02Var02
 local_dir: /checkpoint/jungdam/exp_yunbo/
 checkpoint_freq: 100
 checkpoint_at_end: true
@@ -16,24 +16,19 @@ config:
     vf_clip_param: 1000
     num_sgd_iter: 10
     lr: 0.00001
-    sgd_minibatch_size: 500
+    sgd_minibatch_size: 200
     horizon: 3600
-    train_batch_size: 10000
+    train_batch_size: 50000
     rollout_fragment_length: 25
     normalize_actions: false
     clip_actions: true
-    num_envs_per_worker: 8
-    num_cpus_per_worker: 8
+    num_envs_per_worker: 50
+    num_cpus_per_worker: 50
     num_gpus_per_worker: 0
     remote_worker_envs: true
     framework: torch
-    keep_local_weights_in_sync: false
 
     model:
-        # custom_model: fcnn
-        # custom_model_config:
-        #     log_std_type: constant
-        #     sample_std: 0.1
         custom_model: task_agnostic_policy_type1
         custom_model_config:
             log_std_type: constant
@@ -96,7 +91,7 @@ config:
     batch_mode: truncate_episodes
     observation_filter: NoFilter
     env_config:
-        lazy_creation: true
+        lazy_creation: false
         project_dir: /private/home/yzhang3027/ScaDive/
         fps_sim: 480
         fps_con: 30
@@ -111,11 +106,10 @@ config:
                 method: height
                 height_min: 0.3
         RSI:
-            dist_type: first
+            dist_type: uniform
         state:
             choices: ["body","oppo_body","ref_motion_abs","oppo_ref_motion_abs"]
             # choices: ["sim_interaction_graph_state","ref_interaction_graph_state"]
-
             body_type: facing_R6_h
         action:
             # 'absolute', 'relative'
@@ -191,7 +185,7 @@ config:
                 - player1
                 - player2
             char_info_module:
-                - char_info/baxter_char_info_greeting2.py
+                - char_info/baxter_char_info_greeting.py
                 - char_info/cmu_char_info.py
             sim_char_file:
                 - data/npc/baxter_description/urdf/baxter_edit.urdf
