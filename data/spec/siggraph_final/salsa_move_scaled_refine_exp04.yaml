@@ -163,7 +163,7 @@ config:
                 - ref_motion_end
                 - low_reward
             low_reward_thres: 0.1
-            eoe_margin: 0.2
+            eoe_margin: 0.5
         character:
             name:
                 - player1
