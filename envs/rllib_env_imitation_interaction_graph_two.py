@@ -663,16 +663,14 @@ class EnvRenderer(er.EnvRenderer):
                 print("Invalid Subdirectory")
                 return
             all_iteractions = {}
-            for i, agent_ids in enumerate(self.agent_ids):
-                for j in range(len(self.env.base_env._ref_motion_all[j])):
-                    self.reset({
-                        'start_time': np.array([0.0]*len(self.agent_ids)),
-                        'ref_motion_id': [i]*len(self.agent_ids),
-                        })
-                    
-                    interaction = self.save_interaction_rollout()
-                    all_iteractions[i] = {}
-                    all_iteractions[i][j] = interaction
+            for j in range(len(self.env.base_env._ref_motion_all[0])):
+                self.reset({
+                    'start_time': np.array([0.0]*len(self.agent_ids)),
+                    'ref_motion_id': [j]*len(self.agent_ids),
+                    })
+                
+                interaction = self.save_interaction_rollout()
+                all_iteractions[j] = interaction
             if save_dir:
                 save_dir_i = os.path.join(save_dir, "interaction.pkl")
                 pickle.dump(all_iteractions,open(save_dir_i,"wb"))
@@ -1128,12 +1126,42 @@ class EnvRenderer(er.EnvRenderer):
 
         self.update_cam()
         time_elapsed = 0
-        interactions = []
+        interactions = {
+            'sim_edges': [],
+            'kin_edges': [],
+            'weight': [],
+        }
         while True:
             self.one_step()
             self.draw_GL()
             inter = copy.deepcopy(self.env.base_env.current_interaction)
-            interactions.append(inter)
+            env = self.env.base_env
+            weights = []
+            sim_edge = []
+            kin_edge = []
+            for idx in range(env._num_agent):
+                weight,dist = env.compute_distance_weights(idx,env.current_interaction[idx],return_dist=True,weight_type=env._interaction_weight_type)
+                weights.append(weight.tolist())
+                edge_index = inter[idx]
+                sim_interaction_points = env._sim_interaction_points[idx]
+                kin_interaction_points = env._kin_interaction_points[idx]
+
+                sim_pa = sim_interaction_points[edge_index[0]][:,:3]
+                sim_pb =  sim_interaction_points[edge_index[1]][:,:3]
+                sim_edge_comb = np.hstack([sim_pa,sim_pb]).tolist()
+
+                kin_pa = kin_interaction_points[edge_index[0]][:,:3]
+                kin_pb =  kin_interaction_points[edge_index[1]][:,:3]
+                kin_edge_comb = np.hstack([kin_pa,kin_pb]).tolist()
+
+                sim_edge.append(sim_edge_comb)
+                kin_edge.append(kin_edge_comb)
+
+            interactions['sim_edges'].append(sim_edge)
+            interactions['kin_edges'].append(kin_edge)
+
+            interactions['weight'].append(weights)
+
             time_elapsed += self.env.base_env._dt_con
 
             if self.env.base_env.check_end_of_motion(0):
