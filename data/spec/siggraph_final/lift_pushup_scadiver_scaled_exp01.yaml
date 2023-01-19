@@ -205,10 +205,10 @@ config:
                     LeftArm : [0.5,1,1]
                     RightUpLeg: [1,1,0.5]
                     RightLeg: [1,1,0.5]
-                    # RightFoot: [0.8,0.8,1]
+                    RightFoot: [0.8,0.8,1]
                     LeftUpLeg: [1,1,0.5]
                     LeftLeg: [1,1,0.5]
-                    # LeftFoot: [0.8,0.8,1]             
+                    LeftFoot: [0.8,0.8,1]             
                 - 
                     RightForeArm : [1,1,1]
 
