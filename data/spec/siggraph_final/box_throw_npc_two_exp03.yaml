@@ -207,7 +207,7 @@ config:
         interaction:
             interaction_enabled: True
             prune_edges: False
-            interaction_type: 
+            interaction_type: a
                 - interaction_mesh_human_object_robot
                 - interaction_mesh_robot_object_human
             interaction_choices: ["self","object","other_agent"]

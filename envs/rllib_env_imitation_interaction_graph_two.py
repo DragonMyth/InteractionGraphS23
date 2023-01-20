@@ -260,12 +260,16 @@ class EnvRenderer(er.EnvRenderer):
 
                 self.render_data[agent_ids] = {
                     'joint_data': list(),
-                    'link_data': list()
+                    'link_data': list(),
+                    'kin_joint_data': list(),
+                    'kin_link_data': list(),
                 }
             
             self.render_data['object'] = {
                 'joint_data': list(),
-                'link_data': list()
+                'link_data': list(),
+                'kin_joint_data': list(),
+                'kin_link_data': list(),
             }
 
         self.cam_params.clear()
