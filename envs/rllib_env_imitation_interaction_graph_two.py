@@ -249,12 +249,16 @@ class EnvRenderer(er.EnvRenderer):
 
                 self.render_data[agent_ids] = {
                     'joint_data': list(),
-                    'link_data': list()
+                    'link_data': list(),
+                    'kin_joint_data': list(),
+                    'kin_link_data': list(),
                 }
             
             self.render_data['object'] = {
                 'joint_data': list(),
-                'link_data': list()
+                'link_data': list(),
+                'kin_joint_data': list(),
+                'kin_link_data': list(),
             }
 
         self.cam_params.clear()
@@ -327,15 +331,21 @@ class EnvRenderer(er.EnvRenderer):
                 self.data[i]['cross_interaction_err_raw'].append(0)  
                     
         for i, agent_id in enumerate(self.agent_ids):
-            joint_data, link_data = self.env.base_env.get_render_data(i,'char')
+            joint_data, link_data = self.env.base_env.get_render_data(i,'sim_char')
             self.render_data[agent_id]['joint_data'].append(joint_data)
             self.render_data[agent_id]['link_data'].append(link_data)
 
+            kin_joint_data, kin_link_data = self.env.base_env.get_render_data(i,'kin_char')
+            self.render_data[agent_id]['kin_joint_data'].append(kin_joint_data)
+            self.render_data[agent_id]['kin_link_data'].append(kin_link_data)
         if hasattr(self.env.base_env,"_obj_sim_agent") and len(self.env.base_env._obj_sim_agent)==1:
-            joint_data, link_data = self.env.base_env.get_render_data(0,'obj')
+            joint_data, link_data = self.env.base_env.get_render_data(0,'sim_obj')
             self.render_data['object']['joint_data'].append(joint_data)
             self.render_data['object']['link_data'].append(link_data)
         
+            kin_joint_data, kin_link_data = self.env.base_env.get_render_data(0,'kin_obj')
+            self.render_data['object']['kin_joint_data'].append(kin_joint_data)
+            self.render_data['object']['kin_link_data'].append(kin_link_data)
         return s2, rew, eoe, info
     def get_custom_data(self):
         base_env = self.env.base_env

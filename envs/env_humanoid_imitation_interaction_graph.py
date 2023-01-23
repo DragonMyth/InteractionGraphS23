@@ -1763,11 +1763,15 @@ class Env(env_humanoid_base.Env):
         return cur_time[idx] >= self._ref_motion[idx].length()
 
 
-    def get_render_data(self, idx, agent_type='char'):
-        if agent_type == 'char':
+    def get_render_data(self, idx, agent_type='sim_char'):
+        if agent_type == 'sim_char':
             agent = self._sim_agent[idx]
+        elif agent_type == 'kin_char':
+            agent = self._kin_agent[idx]
+        elif agent_type == 'sim_obj':
+            agent = self._obj_sim_agent[idx]   
         else:
-            agent = self._obj_sim_agent[idx]
+            agent = self._obj_kin_agent[idx]
         return self._base_env.get_render_data(agent)
 
     def render(self, rm):
