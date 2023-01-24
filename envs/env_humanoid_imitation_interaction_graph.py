@@ -1773,7 +1773,23 @@ class Env(env_humanoid_base.Env):
         else:
             agent = self._obj_kin_agent[idx]
         return self._base_env.get_render_data(agent)
+    def get_constraints_info(self):
+        constraints = []
+        for constraint_id in self._constraints:
+            if constraint_id is None:
+                continue
+            constraint_info = self._pb_client.getConstraintInfo(constraint_id)
+            child_body_id = constraint_info[2]
+            child_link_id = constraint_info[3]
+            joint_pos_in_child =constraint_info[7]
 
+            link_state = self._pb_client.getLinkState(child_body_id, child_link_id, computeLinkVelocity=True)
+            p,Q = np.array(link_state[0]),np.array(link_state[1])
+            
+            R = conversions.Q2R(Q)
+            constraint_position = R@joint_pos_in_child+p
+            constraints.append(constraint_position.tolist())
+        return constraints
     def render(self, rm):
         super().render(rm)
 
@@ -1790,7 +1806,7 @@ class Env(env_humanoid_base.Env):
                         rm.gl_render.render_sphere(
                             constants.EYE_T, 0.4, color=[1, 0, 0, 1], slice1=16, slice2=16)
                         rm.gl.glPopMatrix()
-                        rm.gl_render.render_arrow(p, p+v, D=0.01, color=[0.5, 0.5, 0.5, 1])
+                        # rm.gl_render.render_arrow(p, p+v, D=0.01, color=[0.5, 0.5, 0.5, 1])
 
                 if rm.flag['kin_model']:
                     kin_interaction_point = self._kin_interaction_points[i]

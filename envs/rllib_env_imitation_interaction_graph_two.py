@@ -229,6 +229,7 @@ class EnvRenderer(er.EnvRenderer):
     def reset(self, info={}):
 
         self.replay_cnt = 0
+        self.frame_count = 0
         if self.replay:
             self.set_pose()
         else:
@@ -252,6 +253,7 @@ class EnvRenderer(er.EnvRenderer):
                     'link_data': list(),
                     'kin_joint_data': list(),
                     'kin_link_data': list(),
+                    'constraint_data':list(),
                 }
             
             self.render_data['object'] = {
@@ -300,6 +302,9 @@ class EnvRenderer(er.EnvRenderer):
         # Step forward
         s2, rew, eoe, info = self.env.step(a)
         print("---Step Execution: %.4f seconds ---" % (time.time() - start_time))
+
+        print("---Frame Number: %d ------------------------" % (self.frame_count))
+
         for i, agent_id in enumerate(self.agent_ids):
 
             self.data[i]['reward_info']=info[agent_id]['rew_info']
@@ -338,6 +343,9 @@ class EnvRenderer(er.EnvRenderer):
             kin_joint_data, kin_link_data = self.env.base_env.get_render_data(i,'kin_char')
             self.render_data[agent_id]['kin_joint_data'].append(kin_joint_data)
             self.render_data[agent_id]['kin_link_data'].append(kin_link_data)
+
+            constraints = self.env.base_env.get_constraints_info()
+            self.render_data[agent_id]['constraint_data'].append(constraints)
         if hasattr(self.env.base_env,"_obj_sim_agent") and len(self.env.base_env._obj_sim_agent)==1:
             joint_data, link_data = self.env.base_env.get_render_data(0,'sim_obj')
             self.render_data['object']['joint_data'].append(joint_data)
@@ -346,6 +354,7 @@ class EnvRenderer(er.EnvRenderer):
             kin_joint_data, kin_link_data = self.env.base_env.get_render_data(0,'kin_obj')
             self.render_data['object']['kin_joint_data'].append(kin_joint_data)
             self.render_data['object']['kin_link_data'].append(kin_link_data)
+        self.frame_count += 1
         return s2, rew, eoe, info
     def get_custom_data(self):
         base_env = self.env.base_env
