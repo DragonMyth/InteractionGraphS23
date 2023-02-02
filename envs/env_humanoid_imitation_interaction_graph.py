@@ -1868,6 +1868,7 @@ class Env(env_humanoid_base.Env):
         return self._base_env.get_render_data(agent)
 
     def render(self, rm):
+
         if rm.flag['custom1']:
             for i in range(self._num_agent):
                 if rm.flag['sim_model']:
@@ -1895,7 +1896,6 @@ class Env(env_humanoid_base.Env):
                             constants.EYE_T, 0.4, color=[1, 0, 0, 1], slice1=16, slice2=16)
                         rm.gl.glPopMatrix()
                         # rm.gl_render.render_arrow(p, p+v, D=0.01, color=[0.5, 0.5, 0.5, 1])
-        super().render(rm)
         # rm.gl.glPushAttrib(rm.gl.GL_LIGHTING|rm.gl.GL_DEPTH_TEST|rm.gl.GL_BLEND)
         # rm.gl.glEnable(rm.gl.GL_BLEND)
         # rm.gl_render.render_transform(self._kin_agent[0].get_facing_transform(self.get_ground_height(0)), scale=0.5, use_arrow=True)
@@ -1934,8 +1934,8 @@ class Env(env_humanoid_base.Env):
                     pa = sim_interaction_points[edge_index[0]]
                     pb =  sim_interaction_points[edge_index[1]]
                     for k in range(len(pa)):
-                        weight = min(0.01+all_weight[k]*10,1)
-                        color = [0, 0, 1, weight]
+                        weight = min(0.03+all_weight[k]*15,1)
+                        color = [0, 0.3, 0, weight]
                         rm.gl_render.render_line(pa[k], pb[k], color=color,line_width=5)
 
                 if (not rm.flag['toggle_interaction']) or rm.flag['kin_model']:
@@ -2097,6 +2097,7 @@ class Env(env_humanoid_base.Env):
                 draw_joint_geom=False, 
                 link_info_line_width=2.0,
                 color=[0.6, 0.6, 0.6, 1.0])
+        super().render(rm)
 
         
 
